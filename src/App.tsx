@@ -1,12 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+
+type ModalKind = "submit" | "decline" | null;
+
+type ScreenActions = {
+  goTo: (id: string) => void;
+  openModal: (kind: Exclude<ModalKind, null>) => void;
+};
 
 type Screen = {
   id: string;
   phase: string;
   title: string;
   summary: string;
-  render: () => JSX.Element;
+  render: (actions: ScreenActions) => JSX.Element;
 };
 
 const trainer = {
@@ -45,14 +52,14 @@ const offers = [
     type: "정직원",
     salary: "월 270만원",
     date: "2026.07.18",
-    status: "pending"
+    statusLabel: "검토 대기"
   },
   {
     center: "마포 바디밸런스 스튜디오",
     type: "프리랜서",
     salary: "세션당 협의",
     date: "2026.07.15",
-    status: "pending"
+    statusLabel: "신규 제안"
   }
 ];
 
@@ -128,7 +135,7 @@ function ScorePanel({
   return (
     <div className="resultGrid">
       <div className={`scoreHero ${tone}`}>
-        <span>{tone === "pass" ? "PASS" : "FAIL"}</span>
+        <span>{tone === "pass" ? "인증 통과" : "인증 미달"}</span>
         <strong>{score}</strong>
         <p>{title}</p>
       </div>
@@ -152,7 +159,7 @@ function OnboardingBasic() {
     <div className="twoColumn">
       <section className="panel">
         <div className="sectionTitle">
-          <p>Onboarding 1/3</p>
+          <p>온보딩 1/3</p>
           <h2>기본 정보를 먼저 확인합니다</h2>
         </div>
         <div className="formGrid">
@@ -179,7 +186,7 @@ function OnboardingSpecialty() {
   return (
     <div className="singlePanel">
       <div className="sectionTitle">
-        <p>Onboarding 2/3</p>
+        <p>온보딩 2/3</p>
         <h2>전문 분야와 숙련도를 선택합니다</h2>
       </div>
       <div className="specialtyTable">
@@ -196,7 +203,7 @@ function OnboardingSpecialty() {
       </div>
       <div className="bottomNote">
         <strong>선택 규칙</strong>
-        <p>전문 분야는 최소 1개 이상 필요하고, 선택한 분야는 `proficiencyLevel` 1~5 척도로 저장합니다.</p>
+        <p>전문 분야는 최소 1개 이상 필요하고, 선택한 분야는 숙련도 1~5 척도로 저장합니다.</p>
       </div>
     </div>
   );
@@ -207,7 +214,7 @@ function OnboardingPerformance() {
     <div className="twoColumn">
       <section className="panel">
         <div className="sectionTitle">
-          <p>Onboarding 3/3</p>
+          <p>온보딩 3/3</p>
           <h2>성과 데이터는 협상 근거가 됩니다</h2>
         </div>
         <div className="metricsGrid">
@@ -232,7 +239,7 @@ function CaseIntro() {
   return (
     <div className="singlePanel">
       <div className="sectionTitle">
-        <p>Case test guide</p>
+        <p>케이스 테스트 안내</p>
         <h2>테스트 방식과 인증 기준을 먼저 안내합니다</h2>
       </div>
       <div className="infoGrid">
@@ -253,13 +260,13 @@ function CaseIntro() {
   );
 }
 
-function CaseSession() {
+function CaseSession({ openModal }: ScreenActions) {
   return (
     <div className="caseLayout">
       <aside className="panel memberPanel">
         <span className="timerBadge">남은 시간 18:42</span>
         <div className="sectionTitle">
-          <p>Member case</p>
+          <p>회원 케이스</p>
           <h2>무릎 통증 회원</h2>
         </div>
         <dl className="detailList">
@@ -293,7 +300,7 @@ function CaseSession() {
         <div className="confirmBox">
           <strong>제출 전 확인</strong>
           <p>제출 후에는 답변을 수정할 수 없습니다. 브라우저 뒤로가기와 새로고침 시 작성 내용이 사라질 수 있습니다.</p>
-          <button className="primaryButton">제출하기</button>
+          <button className="primaryButton" onClick={() => openModal("submit")} type="button">제출하기</button>
         </div>
       </section>
     </div>
@@ -304,7 +311,7 @@ function ResultPass() {
   return (
     <div className="singlePanel">
       <div className="sectionTitle">
-        <p>Scoring result</p>
+        <p>채점 결과</p>
         <h2>채점 결과: 인증 통과</h2>
       </div>
       <ScorePanel title="인증 기준 80점을 넘었습니다." score={82} scores={passScores} tone="pass" />
@@ -321,7 +328,7 @@ function ResultFail() {
   return (
     <div className="singlePanel">
       <div className="sectionTitle">
-        <p>Scoring result</p>
+        <p>채점 결과</p>
         <h2>채점 결과: 인증 미달</h2>
       </div>
       <ScorePanel title="인증 기준 80점에 미달했습니다." score={76} scores={failScores} tone="fail" />
@@ -394,7 +401,7 @@ function OfferList() {
   return (
     <div className="singlePanel">
       <div className="sectionTitle">
-        <p>Hiring offers</p>
+        <p>채용 제안</p>
         <h2>받은 채용 제안 목록</h2>
       </div>
       <div className="offerList">
@@ -406,7 +413,7 @@ function OfferList() {
             </div>
             <div>
               <span>{offer.date}</span>
-              <span className="statusBadge">{offer.status}</span>
+              <span className="statusBadge">{offer.statusLabel}</span>
             </div>
           </article>
         ))}
@@ -419,12 +426,12 @@ function OfferList() {
   );
 }
 
-function OfferDetail() {
+function OfferDetail({ goTo, openModal }: ScreenActions) {
   return (
     <div className="twoColumn">
       <section className="panel">
         <div className="sectionTitle">
-          <p>Offer detail</p>
+          <p>제안 상세</p>
           <h2>강남 리포머 피트니스</h2>
         </div>
         <dl className="detailList strongList">
@@ -449,10 +456,10 @@ function OfferDetail() {
       <aside className="panel quietPanel">
         <div className="callout">
           <strong>상태 처리</strong>
-          <p>수락 시 `accepted`, 거절 시 확인 모달 후 `declined` 상태로 처리합니다.</p>
+          <p>수락하면 채용 확정 화면으로 이동하고, 거절은 확인 모달을 거친 뒤 처리합니다.</p>
         </div>
-        <button className="primaryButton">수락하기</button>
-        <button className="dangerButton">거절하기</button>
+        <button className="primaryButton" onClick={() => goTo("11")} type="button">수락하기</button>
+        <button className="dangerButton" onClick={() => openModal("decline")} type="button">거절하기</button>
       </aside>
     </div>
   );
@@ -463,7 +470,7 @@ function Confirmed() {
     <div className="twoColumn">
       <section className="panel confirmedPanel">
         <div className="sectionTitle">
-          <p>Offer accepted</p>
+          <p>채용 확정</p>
           <h2>채용 제안 수락이 완료되었습니다</h2>
         </div>
         <dl className="detailList strongList">
@@ -582,12 +589,39 @@ const screens: Screen[] = [
 
 export default function App() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeModal, setActiveModal] = useState<ModalKind>(null);
   const current = screens[activeIndex];
   const CurrentScreen = current.render;
   const progress = useMemo(() => ((activeIndex + 1) / screens.length) * 100, [activeIndex]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeIndex]);
+
+  useEffect(() => {
+    if (current.id !== "05") {
+      return undefined;
+    }
+
+    const warnBeforeLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeLeave);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeave);
+  }, [current.id]);
+
+  const goTo = (id: string) => {
+    const nextIndex = screens.findIndex((screen) => screen.id === id);
+    if (nextIndex >= 0) {
+      setActiveIndex(nextIndex);
+    }
+  };
+
   const goPrev = () => setActiveIndex((index) => Math.max(0, index - 1));
   const goNext = () => setActiveIndex((index) => Math.min(screens.length - 1, index + 1));
+  const actions: ScreenActions = { goTo, openModal: (kind) => setActiveModal(kind) };
 
   return (
     <main className="appShell">
@@ -605,7 +639,7 @@ export default function App() {
       <section className="flowShell">
         <aside className="pageRail" aria-label="페이지 목록">
           <div className="railHeader">
-            <span>Page flow</span>
+            <span>화면 흐름</span>
             <strong>PRD 5.1-5.11</strong>
           </div>
           <div className="railProgress" aria-hidden="true">
@@ -616,6 +650,7 @@ export default function App() {
               <button
                 className={index === activeIndex ? "pageButton active" : "pageButton"}
                 key={screen.id}
+                aria-current={index === activeIndex ? "step" : undefined}
                 onClick={() => setActiveIndex(index)}
                 type="button"
               >
@@ -641,7 +676,7 @@ export default function App() {
           </header>
 
           <div className="screenCanvas">
-            <CurrentScreen />
+            <CurrentScreen {...actions} />
           </div>
 
           <footer className="screenControls">
@@ -658,6 +693,40 @@ export default function App() {
           </footer>
         </section>
       </section>
+
+      {activeModal ? (
+        <div className="modalBackdrop" role="presentation" onClick={() => setActiveModal(null)}>
+          <section
+            aria-labelledby="flow-modal-title"
+            aria-modal="true"
+            className="modalPanel"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            {activeModal === "submit" ? (
+              <>
+                <p>제출 확인</p>
+                <h2 id="flow-modal-title">답변을 제출할까요?</h2>
+                <span>제출 후에는 답변을 수정할 수 없습니다. 작성한 답변과 케이스 테스트 결과가 채점에 사용됩니다.</span>
+                <div className="modalActions">
+                  <button className="secondaryButton" onClick={() => setActiveModal(null)} type="button">다시 확인하기</button>
+                  <button className="primaryButton" onClick={() => { setActiveModal(null); goTo("06A"); }} type="button">제출하고 채점 보기</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>제안 거절 확인</p>
+                <h2 id="flow-modal-title">이 제안을 거절할까요?</h2>
+                <span>거절하면 제안 상태가 거절로 변경됩니다. 이후 같은 조건의 제안은 센터에서 다시 보내야 확인할 수 있습니다.</span>
+                <div className="modalActions">
+                  <button className="secondaryButton" onClick={() => setActiveModal(null)} type="button">계속 검토하기</button>
+                  <button className="dangerButton" onClick={() => setActiveModal(null)} type="button">거절 확정</button>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
