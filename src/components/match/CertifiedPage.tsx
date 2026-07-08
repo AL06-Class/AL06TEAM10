@@ -12,7 +12,7 @@ export default function CertifiedPage() {
           케이스 테스트를 통과했습니다. 이제 마스터의 채용 제안을 받을 수 있습니다.
         </p>
         <div style={s.actions}>
-          <Link to="/owner/offer/new" style={s.primaryLink}>
+          <Link to="/trainer/offers" style={s.primaryLink}>
             채용 제안 확인
           </Link>
           <Link to="/trainer/centers" style={s.secondaryLink}>
