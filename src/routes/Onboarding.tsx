@@ -11,7 +11,7 @@ import {
   type CertificationRequirement,
   type EmploymentTypeRequirement,
 } from "./onboardingConditions";
-import { loadInitialValue, serializeDraft } from "./onboardingDraft";
+import { ONBOARDING_DRAFT_KEY, loadInitialValue, serializeDraft } from "./onboardingDraft";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 
@@ -37,8 +37,6 @@ const INITIAL_FORM_STATE: OnboardingFormState = {
   employmentType: "무관",
 };
 
-const DRAFT_STORAGE_KEY = "onboarding-draft";
-
 // 🐛 회귀 수정(B): 이전에는 "마운트 시 localStorage 복원" 이펙트와 "form 변경마다 저장" 이펙트가
 // 분리돼 있었다. 최초 마운트 커밋에서 두 이펙트가 선언 순서대로 실행되는데, 저장 이펙트가
 // 복원 이펙트의 setState가 아직 반영되지 않은 "그 순간의 form"(=기본값)을 그대로 localStorage에
@@ -47,7 +45,7 @@ const DRAFT_STORAGE_KEY = "onboarding-draft";
 // 실제 저장된 초안이 복원 전에 영구히 사라졌다(정확한 원인, 추정 아님). lazy initializer로
 // 마운트 시 동기적으로 복원해 이 레이스를 원천 제거 — 저장 이펙트만 남기고 복원 이펙트는 삭제.
 function loadInitialForm(): OnboardingFormState {
-  return loadInitialValue(DRAFT_STORAGE_KEY, INITIAL_FORM_STATE);
+  return loadInitialValue(ONBOARDING_DRAFT_KEY, INITIAL_FORM_STATE);
 }
 
 const CENTER_TYPE_OPTIONS = (["일반 헬스장", "개인 PT 스튜디오", "필라테스·기타"] as CenterType[]).map(
@@ -69,7 +67,7 @@ export default function Onboarding() {
   const [errors, setErrors] = useState<{ centerName?: string; region?: string }>({});
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, serializeDraft(form));
+    localStorage.setItem(ONBOARDING_DRAFT_KEY, serializeDraft(form));
   }, [form]);
 
   const toggleSpecialty = (specialty: string) => {

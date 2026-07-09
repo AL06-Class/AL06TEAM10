@@ -1,6 +1,8 @@
 // localStorage 초안 저장/복원 순수 함수 — JSX가 없는 파일로 분리해 node에서 직접
 // 라운드트립(저장→복원 동일성) 테스트가 가능하게 함.
 
+export const ONBOARDING_DRAFT_KEY = "onboarding-draft";
+
 export function serializeDraft<T>(value: T): string {
   return JSON.stringify(value);
 }
