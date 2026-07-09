@@ -85,9 +85,12 @@ export default function TrainerProfileDetailPage() {
 
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
             <h2 className="text-base font-bold text-ink">케이스 테스트 결과</h2>
-            <span className="mt-3 inline-block text-sm font-semibold text-[#a0a8b4]">
-              [ AI 채점 리포트 보기 → ]
-            </span>
+            <Link
+              to={`/trainers/${trainer.id}/report`}
+              className="mt-3 inline-block text-sm font-semibold text-primary"
+            >
+              AI 채점 리포트 보기 →
+            </Link>
           </section>
         </div>
 
