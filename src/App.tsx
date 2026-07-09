@@ -18,45 +18,10 @@ export default function App() {
           "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       }}
     >
-      <section
-        style={{
-          width: "min(100%, 520px)",
-          padding: "32px",
-          border: "1px solid #d9dee7",
-          borderRadius: "8px",
-          background: "#ffffff",
-          boxShadow: "0 10px 30px rgba(23, 32, 42, 0.08)"
-        }}
-      >
-        <p
-          style={{
-            margin: "0 0 12px",
-            color: "#18794e",
-            fontSize: "14px",
-            fontWeight: 700
-          }}
-        >
-          {statusText}
-        </p>
-        <h1
-          style={{
-            margin: "0 0 16px",
-            fontSize: "28px",
-            lineHeight: 1.25
-          }}
-        >
-          {titleText}
-        </h1>
-        <p
-          style={{
-            margin: 0,
-            color: "#52606d",
-            fontSize: "16px",
-            lineHeight: 1.6
-          }}
-        >
-          {descriptionText}
-        </p>
+      <section className="w-full max-w-[520px] rounded-lg border border-[#d9dee7] bg-white p-8 shadow-[0_10px_30px_rgba(23,32,42,0.08)]">
+        <p className="mb-3 text-sm font-bold text-[#18794e]">{statusText}</p>
+        <h1 className="mb-4 text-[28px] leading-tight">{titleText}</h1>
+        <p className="m-0 text-base leading-[1.6] text-[#52606d]">{descriptionText}</p>
       </section>
     </main>
   );
