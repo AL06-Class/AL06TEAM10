@@ -58,6 +58,13 @@ export default function TrainerProfileDetailPage() {
             </div>
           </section>
 
+          {isRecommended && (
+            <section className="rounded-lg border-2 border-primary bg-white p-6">
+              <h2 className="text-base font-bold text-primary">💡 추천 이유</h2>
+              <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.recommendationReason}</p>
+            </section>
+          )}
+
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
             <h2 className="text-base font-bold text-ink">전문 분야</h2>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -129,13 +136,6 @@ export default function TrainerProfileDetailPage() {
         </div>
 
         <div className="lg:sticky lg:top-6 lg:self-start flex flex-col gap-6">
-          {isRecommended && (
-            <section className="rounded-lg border-2 border-primary bg-white p-6">
-              <h2 className="text-base font-bold text-primary">💡 추천 이유</h2>
-              <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.recommendationReason}</p>
-            </section>
-          )}
-
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
             <blockquote className="rounded border-l-4 border-primary bg-surface p-4 text-sm leading-[1.6] text-ink">
               💬 {trainer.aiSummary}

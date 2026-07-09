@@ -16,15 +16,45 @@ export function matchesCareerBand(careerYears: number, band: CareerBand): boolea
   return true;
 }
 
+export type CertFilter = "" | "national" | "international";
+
+export const CERT_FILTER_OPTIONS: { value: CertFilter; label: string }[] = [
+  { value: "", label: "무관" },
+  { value: "national", label: "국가공인" },
+  { value: "international", label: "국제공인" },
+];
+
+export type EmploymentFilter = "" | "fulltime" | "freelancer";
+
+export const EMPLOYMENT_FILTER_OPTIONS: { value: EmploymentFilter; label: string }[] = [
+  { value: "", label: "무관" },
+  { value: "fulltime", label: "정직원" },
+  { value: "freelancer", label: "프리랜서" },
+];
+
 export function filterTrainers(
   trainers: Trainer[],
-  filters: { specialty: string; region: string; career: CareerBand }
+  filters: {
+    specialties: string[];
+    region: string;
+    career: CareerBand;
+    cert: CertFilter;
+    employment: EmploymentFilter;
+  }
 ): Trainer[] {
   return trainers
     .filter((trainer) => trainer.status === "active")
-    .filter((trainer) => !filters.specialty || trainer.specialties.includes(filters.specialty))
+    .filter(
+      (trainer) =>
+        filters.specialties.length === 0 ||
+        trainer.specialties.some((specialty) => filters.specialties.includes(specialty))
+    )
     .filter((trainer) => !filters.region || trainer.region === filters.region)
-    .filter((trainer) => matchesCareerBand(trainer.careerYears, filters.career));
+    .filter((trainer) => matchesCareerBand(trainer.careerYears, filters.career))
+    .filter((trainer) => !filters.cert || trainer.certificationLevels.includes(filters.cert))
+    .filter(
+      (trainer) => !filters.employment || trainer.employmentTypes.includes(filters.employment)
+    );
 }
 
 export const RECOMMENDED_COUNT = 4;

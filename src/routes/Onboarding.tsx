@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
-import type { CareerBand } from "./trainerFilters";
+import type { CareerBand, CertFilter, EmploymentFilter } from "./trainerFilters";
+import ChipGroup from "../components/ChipGroup";
+import Segmented from "../components/Segmented";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 type CareerRequirement = "무관" | "1년 이상" | "3년 이상";
@@ -32,6 +34,20 @@ const INITIAL_FORM_STATE: OnboardingFormState = {
 
 const DRAFT_STORAGE_KEY = "onboarding-draft";
 
+const CENTER_TYPE_OPTIONS = (["일반 헬스장", "개인 PT 스튜디오", "필라테스·기타"] as CenterType[]).map(
+  (option) => ({ value: option, label: option })
+);
+const CAREER_REQUIREMENT_OPTIONS = (["무관", "1년 이상", "3년 이상"] as CareerRequirement[]).map(
+  (option) => ({ value: option, label: option })
+);
+const CERTIFICATION_REQUIREMENT_OPTIONS = (
+  ["무관", "국가공인", "국제공인"] as CertificationRequirement[]
+).map((option) => ({ value: option, label: option }));
+const EMPLOYMENT_TYPE_OPTIONS = (["정직원", "프리랜서", "무관"] as EmploymentType[]).map((option) => ({
+  value: option,
+  label: option,
+}));
+
 // 온보딩 경력 옵션(무관/1년 이상/3년 이상)은 필터 구간(무관/1~3년/4~7년/8년 이상)과
 // 정확히 일치하지 않는다 — "N년 이상"은 상한이 없는데 필터 밴드는 상한이 있는 구간이라
 // 근사 매핑임(1년 이상→junior, 3년 이상→mid로 하한만 맞춤). 실제로는 상위 경력자도
@@ -39,6 +55,18 @@ const DRAFT_STORAGE_KEY = "onboarding-draft";
 function mapCareerRequirementToBand(requirement: CareerRequirement): CareerBand {
   if (requirement === "1년 이상") return "junior";
   if (requirement === "3년 이상") return "mid";
+  return "";
+}
+
+function mapCertificationRequirementToFilter(requirement: CertificationRequirement): CertFilter {
+  if (requirement === "국가공인") return "national";
+  if (requirement === "국제공인") return "international";
+  return "";
+}
+
+function mapEmploymentTypeToFilter(type: EmploymentType): EmploymentFilter {
+  if (type === "정직원") return "fulltime";
+  if (type === "프리랜서") return "freelancer";
   return "";
 }
 
@@ -82,10 +110,19 @@ export default function Onboarding() {
     if (Object.keys(nextErrors).length > 0) return;
 
     const params = new URLSearchParams();
-    if (form.desiredSpecialties[0]) params.set("specialty", form.desiredSpecialties[0]);
+    if (form.desiredSpecialties.length > 0) {
+      params.set("specialty", form.desiredSpecialties.join(","));
+    }
     if (form.region) params.set("region", form.region);
+
     const careerBand = mapCareerRequirementToBand(form.desiredCareer);
     if (careerBand) params.set("career", careerBand);
+
+    const certFilter = mapCertificationRequirementToFilter(form.desiredCertification);
+    if (certFilter) params.set("cert", certFilter);
+
+    const employmentFilter = mapEmploymentTypeToFilter(form.employmentType);
+    if (employmentFilter) params.set("employment", employmentFilter);
 
     navigate(`/trainers?${params.toString()}`);
   };
@@ -137,24 +174,14 @@ export default function Onboarding() {
               {errors.region && <span className="text-xs text-[#c0392b]">{errors.region}</span>}
             </label>
 
-            <fieldset className="flex flex-col gap-1 text-sm text-[#52606d]">
-              <legend>센터 유형</legend>
-              <div className="mt-1 flex flex-wrap gap-4">
-                {(["일반 헬스장", "개인 PT 스튜디오", "필라테스·기타"] as CenterType[]).map(
-                  (option) => (
-                    <label key={option} className="flex items-center gap-1 text-sm text-ink">
-                      <input
-                        type="radio"
-                        name="centerType"
-                        checked={form.centerType === option}
-                        onChange={() => setForm((prev) => ({ ...prev, centerType: option }))}
-                      />
-                      {option}
-                    </label>
-                  )
-                )}
-              </div>
-            </fieldset>
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              센터 유형
+              <Segmented
+                options={CENTER_TYPE_OPTIONS}
+                value={form.centerType}
+                onChange={(value) => setForm((prev) => ({ ...prev, centerType: value as CenterType }))}
+              />
+            </div>
 
             <label className="flex flex-col gap-1 text-sm text-[#52606d]">
               현재 트레이너 수
@@ -175,74 +202,50 @@ export default function Onboarding() {
           <h2 className="text-base font-bold text-ink">채용 조건</h2>
 
           <div className="mt-4 flex flex-col gap-4">
-            <fieldset className="flex flex-col gap-1 text-sm text-[#52606d]">
-              <legend>원하는 전문 분야</legend>
-              <div className="mt-1 flex flex-wrap gap-4">
-                {SPECIALTY_OPTIONS.map((option) => (
-                  <label key={option} className="flex items-center gap-1 text-sm text-ink">
-                    <input
-                      type="checkbox"
-                      checked={form.desiredSpecialties.includes(option)}
-                      onChange={() => toggleSpecialty(option)}
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              원하는 전문 분야
+              <ChipGroup
+                options={SPECIALTY_OPTIONS}
+                selected={form.desiredSpecialties}
+                onToggle={toggleSpecialty}
+              />
+            </div>
 
-            <fieldset className="flex flex-col gap-1 text-sm text-[#52606d]">
-              <legend>경력</legend>
-              <div className="mt-1 flex flex-wrap gap-4">
-                {(["무관", "1년 이상", "3년 이상"] as CareerRequirement[]).map((option) => (
-                  <label key={option} className="flex items-center gap-1 text-sm text-ink">
-                    <input
-                      type="radio"
-                      name="desiredCareer"
-                      checked={form.desiredCareer === option}
-                      onChange={() => setForm((prev) => ({ ...prev, desiredCareer: option }))}
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              경력
+              <Segmented
+                options={CAREER_REQUIREMENT_OPTIONS}
+                value={form.desiredCareer}
+                onChange={(value) =>
+                  setForm((prev) => ({ ...prev, desiredCareer: value as CareerRequirement }))
+                }
+              />
+            </div>
 
-            <fieldset className="flex flex-col gap-1 text-sm text-[#52606d]">
-              <legend>자격증</legend>
-              <div className="mt-1 flex flex-wrap gap-4">
-                {(["무관", "국가공인", "국제공인"] as CertificationRequirement[]).map((option) => (
-                  <label key={option} className="flex items-center gap-1 text-sm text-ink">
-                    <input
-                      type="radio"
-                      name="desiredCertification"
-                      checked={form.desiredCertification === option}
-                      onChange={() =>
-                        setForm((prev) => ({ ...prev, desiredCertification: option }))
-                      }
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              자격증
+              <Segmented
+                options={CERTIFICATION_REQUIREMENT_OPTIONS}
+                value={form.desiredCertification}
+                onChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    desiredCertification: value as CertificationRequirement,
+                  }))
+                }
+              />
+            </div>
 
-            <fieldset className="flex flex-col gap-1 text-sm text-[#52606d]">
-              <legend>고용 형태</legend>
-              <div className="mt-1 flex flex-wrap gap-4">
-                {(["정직원", "프리랜서", "무관"] as EmploymentType[]).map((option) => (
-                  <label key={option} className="flex items-center gap-1 text-sm text-ink">
-                    <input
-                      type="radio"
-                      name="employmentType"
-                      checked={form.employmentType === option}
-                      onChange={() => setForm((prev) => ({ ...prev, employmentType: option }))}
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              고용 형태
+              <Segmented
+                options={EMPLOYMENT_TYPE_OPTIONS}
+                value={form.employmentType}
+                onChange={(value) =>
+                  setForm((prev) => ({ ...prev, employmentType: value as EmploymentType }))
+                }
+              />
+            </div>
           </div>
         </section>
 

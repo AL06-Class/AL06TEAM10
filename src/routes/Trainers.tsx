@@ -2,16 +2,28 @@ import { Link, useSearchParams } from "react-router-dom";
 import TrainerCard from "../components/TrainerCard";
 import TrainerFilterBar from "../components/TrainerFilterBar";
 import { trainers } from "../data/trainers";
-import { filterTrainers, getRecommendedTrainers, type CareerBand } from "./trainerFilters";
+import {
+  filterTrainers,
+  getRecommendedTrainers,
+  type CareerBand,
+  type CertFilter,
+  type EmploymentFilter,
+} from "./trainerFilters";
+
+function parseSpecialties(raw: string): string[] {
+  return raw ? raw.split(",").filter(Boolean) : [];
+}
 
 export default function TrainerListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const specialty = searchParams.get("specialty") ?? "";
+  const specialties = parseSpecialties(searchParams.get("specialty") ?? "");
   const region = searchParams.get("region") ?? "";
   const career = (searchParams.get("career") ?? "") as CareerBand;
+  const cert = (searchParams.get("cert") ?? "") as CertFilter;
+  const employment = (searchParams.get("employment") ?? "") as EmploymentFilter;
 
-  const updateFilter = (key: string, value: string) => {
+  const updateParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) {
       next.set(key, value);
@@ -21,13 +33,20 @@ export default function TrainerListPage() {
     setSearchParams(next);
   };
 
+  const toggleSpecialty = (specialty: string) => {
+    const nextSpecialties = specialties.includes(specialty)
+      ? specialties.filter((item) => item !== specialty)
+      : [...specialties, specialty];
+    updateParam("specialty", nextSpecialties.join(","));
+  };
+
   const resetFilters = () => setSearchParams(new URLSearchParams());
 
   // 추천 카드 집합은 필터와 무관하게 전체 트레이너 기준 고정(프로필 상세와 판정 일치 위함).
   const recommendedTrainers = getRecommendedTrainers(trainers);
   const recommendedIds = new Set(recommendedTrainers.map((trainer) => trainer.id));
 
-  const filteredTrainers = filterTrainers(trainers, { specialty, region, career });
+  const filteredTrainers = filterTrainers(trainers, { specialties, region, career, cert, employment });
   const remainingTrainers = filteredTrainers.filter((trainer) => !recommendedIds.has(trainer.id));
 
   return (
@@ -43,12 +62,16 @@ export default function TrainerListPage() {
       </p>
 
       <TrainerFilterBar
-        specialty={specialty}
+        specialties={specialties}
         region={region}
         career={career}
-        onSpecialtyChange={(value) => updateFilter("specialty", value)}
-        onRegionChange={(value) => updateFilter("region", value)}
-        onCareerChange={(value) => updateFilter("career", value)}
+        cert={cert}
+        employment={employment}
+        onToggleSpecialty={toggleSpecialty}
+        onRegionChange={(value) => updateParam("region", value)}
+        onCareerChange={(value) => updateParam("career", value)}
+        onCertChange={(value) => updateParam("cert", value)}
+        onEmploymentChange={(value) => updateParam("employment", value)}
         onReset={resetFilters}
       />
 
