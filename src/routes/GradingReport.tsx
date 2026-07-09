@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
+import HireProposalButton from "../components/HireProposalButton";
 
 export default function GradingReportPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -88,9 +89,7 @@ export default function GradingReportPage() {
       </section>
 
       <div className="mt-6">
-        <span className="block w-full rounded bg-[#f5f5f7] px-4 py-2 text-center text-sm font-semibold text-[#a0a8b4]">
-          [ 채용 제안 보내기 ]
-        </span>
+        <HireProposalButton trainerId={trainer.id} />
       </div>
     </main>
   );

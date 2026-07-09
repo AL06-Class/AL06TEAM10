@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
+import HireProposalButton from "../components/HireProposalButton";
 
 export default function TrainerProfileDetailPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -104,9 +105,7 @@ export default function TrainerProfileDetailPage() {
             </blockquote>
 
             <div className="mt-6 flex flex-col gap-2">
-              <span className="w-full rounded bg-[#f5f5f7] px-4 py-2 text-center text-sm font-semibold text-[#a0a8b4]">
-                [ 채용 제안 보내기 ]
-              </span>
+              <HireProposalButton trainerId={trainer.id} />
               <span className="w-full rounded border border-[#d9dee7] px-4 py-2 text-center text-sm font-semibold text-[#a0a8b4]">
                 🔖 저장해두기
               </span>
