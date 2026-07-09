@@ -9,10 +9,13 @@ import {
   type CertFilter,
   type EmploymentFilter,
 } from "./trainerFilters";
+import { loadOnboardingConditions } from "./onboardingConditions";
 
 function parseSpecialties(raw: string): string[] {
   return raw ? raw.split(",").filter(Boolean) : [];
 }
+
+const LIST_GRID_COLS = "grid-cols-[1.2fr_2fr_1fr_0.8fr]";
 
 export default function TrainerListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,8 +45,10 @@ export default function TrainerListPage() {
 
   const resetFilters = () => setSearchParams(new URLSearchParams());
 
-  // 추천 카드 집합은 필터와 무관하게 전체 트레이너 기준 고정(프로필 상세와 판정 일치 위함).
-  const recommendedTrainers = getRecommendedTrainers(trainers);
+  // 추천 집합 = 온보딩 채용조건(localStorage) 부합 상위 4명 — 목록·상세가 같은 조건을 읽어
+  // 판정을 일치시킨다(온보딩 미작성이면 getRecommendedTrainers가 전체 기준으로 fallback).
+  const onboardingConditions = loadOnboardingConditions();
+  const recommendedTrainers = getRecommendedTrainers(trainers, onboardingConditions);
   const recommendedIds = new Set(recommendedTrainers.map((trainer) => trainer.id));
 
   const filteredTrainers = filterTrainers(trainers, { specialties, region, career, cert, employment });
@@ -77,11 +82,25 @@ export default function TrainerListPage() {
 
       <section className="mt-8">
         <h2 className="mb-4 text-lg font-bold text-ink">추천 {recommendedTrainers.length}명</h2>
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {recommendedTrainers.map((trainer) => (
-            <TrainerCard key={trainer.id} trainer={trainer} recommended />
-          ))}
-        </ul>
+        {recommendedTrainers.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
+            <p className="text-sm text-[#52606d]">
+              조건에 맞는 추천 트레이너가 없습니다 — 조건을 완화해 보세요.
+            </p>
+            <Link
+              to="/onboarding"
+              className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-semibold text-white"
+            >
+              채용 조건 다시 설정하기
+            </Link>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {recommendedTrainers.map((trainer) => (
+              <TrainerCard key={trainer.id} trainer={trainer} recommended />
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-8">
@@ -98,20 +117,31 @@ export default function TrainerListPage() {
             </button>
           </div>
         ) : (
-          <ul className="divide-y divide-[#d9dee7] overflow-hidden rounded-lg border border-[#d9dee7] bg-white">
-            {remainingTrainers.map((trainer) => (
-              <li key={trainer.id}>
-                <Link
-                  to={`/trainers/${trainer.id}`}
-                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm hover:bg-surface"
-                >
-                  <span className="font-semibold text-ink">{trainer.name}</span>
-                  <span className="text-[#52606d]">{trainer.specialties.join(", ")}</span>
-                  <span className="text-[#52606d]">경력 {trainer.careerYears}년</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-hidden rounded-lg border border-[#d9dee7] bg-white">
+            <div
+              className={`grid ${LIST_GRID_COLS} gap-2 border-b border-[#d9dee7] bg-surface px-4 py-2 text-xs font-semibold text-[#52606d]`}
+            >
+              <span>이름</span>
+              <span>전문 분야</span>
+              <span>인증 트레이너</span>
+              <span>경력</span>
+            </div>
+            <ul className="divide-y divide-[#d9dee7]">
+              {remainingTrainers.map((trainer) => (
+                <li key={trainer.id}>
+                  <Link
+                    to={`/trainers/${trainer.id}`}
+                    className={`grid ${LIST_GRID_COLS} items-center gap-2 px-4 py-3 text-sm hover:bg-surface`}
+                  >
+                    <span className="truncate font-semibold text-ink">{trainer.name}</span>
+                    <span className="truncate text-[#52606d]">{trainer.specialties.join(", ")}</span>
+                    <span className="text-[#52606d]">{trainer.isCertified ? "인증" : "미인증"}</span>
+                    <span className="text-[#52606d]">{trainer.careerYears}년</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </main>

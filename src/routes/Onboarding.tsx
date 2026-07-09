@@ -1,14 +1,19 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
-import type { CareerBand, CertFilter, EmploymentFilter } from "./trainerFilters";
 import ChipGroup from "../components/ChipGroup";
 import Segmented from "../components/Segmented";
+import {
+  mapCareerRequirementToBand,
+  mapCertificationRequirementToFilter,
+  mapEmploymentTypeToFilter,
+  type CareerRequirement,
+  type CertificationRequirement,
+  type EmploymentTypeRequirement,
+} from "./onboardingConditions";
+import { loadInitialValue, serializeDraft } from "./onboardingDraft";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
-type CareerRequirement = "무관" | "1년 이상" | "3년 이상";
-type CertificationRequirement = "무관" | "국가공인" | "국제공인";
-type EmploymentType = "정직원" | "프리랜서" | "무관";
 
 interface OnboardingFormState {
   centerName: string;
@@ -18,7 +23,7 @@ interface OnboardingFormState {
   desiredSpecialties: string[];
   desiredCareer: CareerRequirement;
   desiredCertification: CertificationRequirement;
-  employmentType: EmploymentType;
+  employmentType: EmploymentTypeRequirement;
 }
 
 const INITIAL_FORM_STATE: OnboardingFormState = {
@@ -34,6 +39,17 @@ const INITIAL_FORM_STATE: OnboardingFormState = {
 
 const DRAFT_STORAGE_KEY = "onboarding-draft";
 
+// 🐛 회귀 수정(B): 이전에는 "마운트 시 localStorage 복원" 이펙트와 "form 변경마다 저장" 이펙트가
+// 분리돼 있었다. 최초 마운트 커밋에서 두 이펙트가 선언 순서대로 실행되는데, 저장 이펙트가
+// 복원 이펙트의 setState가 아직 반영되지 않은 "그 순간의 form"(=기본값)을 그대로 localStorage에
+// 덮어썼다. React.StrictMode(main.tsx가 앱을 감쌈)의 개발 모드 마운트→이펙트→언마운트→재마운트
+// 동작 때문에, 재마운트 시 복원 이펙트가 "이미 기본값으로 덮어써진" localStorage를 읽어 들여
+// 실제 저장된 초안이 복원 전에 영구히 사라졌다(정확한 원인, 추정 아님). lazy initializer로
+// 마운트 시 동기적으로 복원해 이 레이스를 원천 제거 — 저장 이펙트만 남기고 복원 이펙트는 삭제.
+function loadInitialForm(): OnboardingFormState {
+  return loadInitialValue(DRAFT_STORAGE_KEY, INITIAL_FORM_STATE);
+}
+
 const CENTER_TYPE_OPTIONS = (["일반 헬스장", "개인 PT 스튜디오", "필라테스·기타"] as CenterType[]).map(
   (option) => ({ value: option, label: option })
 );
@@ -43,51 +59,17 @@ const CAREER_REQUIREMENT_OPTIONS = (["무관", "1년 이상", "3년 이상"] as 
 const CERTIFICATION_REQUIREMENT_OPTIONS = (
   ["무관", "국가공인", "국제공인"] as CertificationRequirement[]
 ).map((option) => ({ value: option, label: option }));
-const EMPLOYMENT_TYPE_OPTIONS = (["정직원", "프리랜서", "무관"] as EmploymentType[]).map((option) => ({
-  value: option,
-  label: option,
-}));
-
-// 온보딩 경력 옵션(무관/1년 이상/3년 이상)은 필터 구간(무관/1~3년/4~7년/8년 이상)과
-// 정확히 일치하지 않는다 — "N년 이상"은 상한이 없는데 필터 밴드는 상한이 있는 구간이라
-// 근사 매핑임(1년 이상→junior, 3년 이상→mid로 하한만 맞춤). 실제로는 상위 경력자도
-// 걸러질 수 있음 — 정확한 매칭은 필터를 "이상" 구간으로 바꾸는 후속 작업 필요.
-function mapCareerRequirementToBand(requirement: CareerRequirement): CareerBand {
-  if (requirement === "1년 이상") return "junior";
-  if (requirement === "3년 이상") return "mid";
-  return "";
-}
-
-function mapCertificationRequirementToFilter(requirement: CertificationRequirement): CertFilter {
-  if (requirement === "국가공인") return "national";
-  if (requirement === "국제공인") return "international";
-  return "";
-}
-
-function mapEmploymentTypeToFilter(type: EmploymentType): EmploymentFilter {
-  if (type === "정직원") return "fulltime";
-  if (type === "프리랜서") return "freelancer";
-  return "";
-}
+const EMPLOYMENT_TYPE_OPTIONS = (["정직원", "프리랜서", "무관"] as EmploymentTypeRequirement[]).map(
+  (option) => ({ value: option, label: option })
+);
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<OnboardingFormState>(INITIAL_FORM_STATE);
+  const [form, setForm] = useState<OnboardingFormState>(loadInitialForm);
   const [errors, setErrors] = useState<{ centerName?: string; region?: string }>({});
 
   useEffect(() => {
-    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (saved) {
-      try {
-        setForm(JSON.parse(saved));
-      } catch {
-        // 저장된 값이 손상됐으면 기본값 유지
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+    localStorage.setItem(DRAFT_STORAGE_KEY, serializeDraft(form));
   }, [form]);
 
   const toggleSpecialty = (specialty: string) => {
@@ -242,7 +224,7 @@ export default function Onboarding() {
                 options={EMPLOYMENT_TYPE_OPTIONS}
                 value={form.employmentType}
                 onChange={(value) =>
-                  setForm((prev) => ({ ...prev, employmentType: value as EmploymentType }))
+                  setForm((prev) => ({ ...prev, employmentType: value as EmploymentTypeRequirement }))
                 }
               />
             </div>

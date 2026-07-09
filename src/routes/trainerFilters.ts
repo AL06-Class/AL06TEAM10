@@ -32,16 +32,23 @@ export const EMPLOYMENT_FILTER_OPTIONS: { value: EmploymentFilter; label: string
   { value: "freelancer", label: "프리랜서" },
 ];
 
-export function filterTrainers(
-  trainers: Trainer[],
-  filters: {
-    specialties: string[];
-    region: string;
-    career: CareerBand;
-    cert: CertFilter;
-    employment: EmploymentFilter;
-  }
-): Trainer[] {
+export interface OnboardingConditions {
+  specialties: string[];
+  region: string;
+  career: CareerBand;
+  cert: CertFilter;
+  employment: EmploymentFilter;
+}
+
+export const EMPTY_CONDITIONS: OnboardingConditions = {
+  specialties: [],
+  region: "",
+  career: "",
+  cert: "",
+  employment: "",
+};
+
+export function filterTrainers(trainers: Trainer[], filters: OnboardingConditions): Trainer[] {
   return trainers
     .filter((trainer) => trainer.status === "active")
     .filter(
@@ -66,9 +73,14 @@ export function rankForRecommendation(trainers: Trainer[]): Trainer[] {
   });
 }
 
-// 추천 집합은 전체 활성 트레이너 기준 고정 정렬 결과 — 목록 필터와 무관하게 항상 동일해야
-// 목록·프로필 상세의 추천 판정이 일치한다(필터는 "그 외" 리스트에만 적용).
-export function getRecommendedTrainers(trainers: Trainer[]): Trainer[] {
-  const activeTrainers = trainers.filter((trainer) => trainer.status === "active");
-  return rankForRecommendation(activeTrainers).slice(0, RECOMMENDED_COUNT);
+// 추천 집합 = 온보딩 채용조건(conditions)에 부합하는 트레이너 중 상위 RECOMMENDED_COUNT.
+// conditions가 없으면(온보딩 미작성) 전체 활성 트레이너 기준으로 fallback — 목록(Trainers.tsx)과
+// 상세(TrainerDetail.tsx)가 항상 같은 conditions를 넣어 호출해야 판정이 일치한다.
+// 조건 부합 인원이 RECOMMENDED_COUNT 미만이면 부합하는 만큼만 반환(비부합으로 채우지 않음).
+export function getRecommendedTrainers(
+  trainers: Trainer[],
+  conditions?: OnboardingConditions | null
+): Trainer[] {
+  const matched = filterTrainers(trainers, conditions ?? EMPTY_CONDITIONS);
+  return rankForRecommendation(matched).slice(0, RECOMMENDED_COUNT);
 }

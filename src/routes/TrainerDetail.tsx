@@ -3,6 +3,7 @@ import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
 import { getRecommendedTrainers } from "./trainerFilters";
+import { loadOnboardingConditions } from "./onboardingConditions";
 
 export default function TrainerProfileDetailPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -24,7 +25,10 @@ export default function TrainerProfileDetailPage() {
   }
 
   const report = gradingReports.find((candidate) => candidate.trainerId === trainer.id);
-  const recommendedIds = new Set(getRecommendedTrainers(trainers).map((candidate) => candidate.id));
+  // 목록(Trainers.tsx)과 동일한 온보딩 조건을 읽어 추천 판정을 일치시킨다.
+  const recommendedIds = new Set(
+    getRecommendedTrainers(trainers, loadOnboardingConditions()).map((candidate) => candidate.id)
+  );
   const isRecommended = recommendedIds.has(trainer.id);
 
   return (
