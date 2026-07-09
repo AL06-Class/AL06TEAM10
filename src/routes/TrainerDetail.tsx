@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
+import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
+import { getRecommendedTrainers } from "./trainerFilters";
 
 export default function TrainerProfileDetailPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -20,6 +22,10 @@ export default function TrainerProfileDetailPage() {
       </main>
     );
   }
+
+  const report = gradingReports.find((candidate) => candidate.trainerId === trainer.id);
+  const recommendedIds = new Set(getRecommendedTrainers(trainers).map((candidate) => candidate.id));
+  const isRecommended = recommendedIds.has(trainer.id);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -67,8 +73,38 @@ export default function TrainerProfileDetailPage() {
           </section>
 
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-            <h2 className="text-base font-bold text-ink">성과 데이터</h2>
-            <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.performanceSummary}</p>
+            <h2 className="text-base font-bold text-ink">케이스 테스트 결과</h2>
+            {report ? (
+              <div className="mt-3 flex flex-col gap-3">
+                {report.areaScores.map((area) => (
+                  <div key={area.evaluationItem}>
+                    <div className="flex justify-between text-sm text-[#52606d]">
+                      <span>{area.evaluationItem}</span>
+                      <span>{area.score}</span>
+                    </div>
+                    <div className="mt-1 h-2 w-full rounded-full bg-[#f5f5f7]">
+                      <div
+                        className="h-2 rounded-full bg-primary"
+                        style={{ width: `${area.score}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <Link
+                  to={`/trainers/${trainer.id}/report`}
+                  className="mt-1 inline-block text-sm font-semibold text-primary"
+                >
+                  AI 채점 리포트 보기 →
+                </Link>
+              </div>
+            ) : (
+              <Link
+                to={`/trainers/${trainer.id}/report`}
+                className="mt-3 inline-block text-sm font-semibold text-primary"
+              >
+                AI 채점 리포트 보기 →
+              </Link>
+            )}
           </section>
 
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
@@ -85,22 +121,21 @@ export default function TrainerProfileDetailPage() {
           </section>
 
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-            <h2 className="text-base font-bold text-ink">케이스 테스트 결과</h2>
-            <Link
-              to={`/trainers/${trainer.id}/report`}
-              className="mt-3 inline-block text-sm font-semibold text-primary"
-            >
-              AI 채점 리포트 보기 →
-            </Link>
+            <h2 className="text-base font-bold text-ink">성과 데이터</h2>
+            <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.performanceSummary}</p>
           </section>
         </div>
 
-        <div className="lg:sticky lg:top-6 lg:self-start">
-          <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-            <h2 className="text-base font-bold text-ink">💡 추천 이유</h2>
-            <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.recommendationReason}</p>
+        <div className="lg:sticky lg:top-6 lg:self-start flex flex-col gap-6">
+          {isRecommended && (
+            <section className="rounded-lg border-2 border-primary bg-white p-6">
+              <h2 className="text-base font-bold text-primary">💡 추천 이유</h2>
+              <p className="mt-3 text-sm leading-[1.6] text-ink">{trainer.recommendationReason}</p>
+            </section>
+          )}
 
-            <blockquote className="mt-4 rounded border-l-4 border-primary bg-surface p-4 text-sm leading-[1.6] text-ink">
+          <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
+            <blockquote className="rounded border-l-4 border-primary bg-surface p-4 text-sm leading-[1.6] text-ink">
               💬 {trainer.aiSummary}
             </blockquote>
 
