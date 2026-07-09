@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
+import type { CareerBand } from "./trainerFilters";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 type CareerRequirement = "무관" | "1년 이상" | "3년 이상";
@@ -29,10 +30,37 @@ const INITIAL_FORM_STATE: OnboardingFormState = {
   employmentType: "무관",
 };
 
+const DRAFT_STORAGE_KEY = "onboarding-draft";
+
+// 온보딩 경력 옵션(무관/1년 이상/3년 이상)은 필터 구간(무관/1~3년/4~7년/8년 이상)과
+// 정확히 일치하지 않는다 — "N년 이상"은 상한이 없는데 필터 밴드는 상한이 있는 구간이라
+// 근사 매핑임(1년 이상→junior, 3년 이상→mid로 하한만 맞춤). 실제로는 상위 경력자도
+// 걸러질 수 있음 — 정확한 매칭은 필터를 "이상" 구간으로 바꾸는 후속 작업 필요.
+function mapCareerRequirementToBand(requirement: CareerRequirement): CareerBand {
+  if (requirement === "1년 이상") return "junior";
+  if (requirement === "3년 이상") return "mid";
+  return "";
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const [form, setForm] = useState<OnboardingFormState>(INITIAL_FORM_STATE);
   const [errors, setErrors] = useState<{ centerName?: string; region?: string }>({});
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (saved) {
+      try {
+        setForm(JSON.parse(saved));
+      } catch {
+        // 저장된 값이 손상됐으면 기본값 유지
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(form));
+  }, [form]);
 
   const toggleSpecialty = (specialty: string) => {
     setForm((prev) => ({
@@ -53,7 +81,13 @@ export default function Onboarding() {
 
     if (Object.keys(nextErrors).length > 0) return;
 
-    navigate("/trainers");
+    const params = new URLSearchParams();
+    if (form.desiredSpecialties[0]) params.set("specialty", form.desiredSpecialties[0]);
+    if (form.region) params.set("region", form.region);
+    const careerBand = mapCareerRequirementToBand(form.desiredCareer);
+    if (careerBand) params.set("career", careerBand);
+
+    navigate(`/trainers?${params.toString()}`);
   };
 
   return (

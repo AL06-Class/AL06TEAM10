@@ -74,7 +74,9 @@ export default function TrainerProfileDetailPage() {
 
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
             <h2 className="text-base font-bold text-ink">케이스 테스트 결과</h2>
-            {report ? (
+            {!trainer.isCertified ? (
+              <p className="mt-3 text-sm text-[#52606d]">미인증 트레이너 — 채점 리포트 없음</p>
+            ) : report ? (
               <div className="mt-3 flex flex-col gap-3">
                 {report.areaScores.map((area) => (
                   <div key={area.evaluationItem}>

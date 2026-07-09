@@ -27,7 +27,7 @@ export function filterTrainers(
     .filter((trainer) => matchesCareerBand(trainer.careerYears, filters.career));
 }
 
-export const RECOMMENDED_COUNT = 5;
+export const RECOMMENDED_COUNT = 4;
 
 export function rankForRecommendation(trainers: Trainer[]): Trainer[] {
   return [...trainers].sort((a, b) => {

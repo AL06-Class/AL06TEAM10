@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
@@ -9,6 +9,10 @@ export default function GradingReportPage() {
   const report = gradingReports.find((candidate) => candidate.trainerId === trainerId);
 
   const backLink = trainerId ? `/trainers/${trainerId}` : "/trainers";
+
+  if (trainer && !trainer.isCertified) {
+    return <Navigate to={backLink} replace />;
+  }
 
   if (!trainer || !report) {
     return (
