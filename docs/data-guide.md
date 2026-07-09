@@ -86,6 +86,9 @@
 - `interviewQuestions`: 면접 질문
 - `evaluations`: 면접 평가
 - `evaluationCriteria`: 평가 기준
+- `trainers`: 트레이너 프로필
+- `caseTestResults`: 케이스 테스트 결과
+- `hireProposals`: 채용 제안
 
 ### 공통 필드 이름
 
@@ -100,6 +103,7 @@
 - `interviewId`: 면접 식별자
 - `conversationId`: 일정 조율 대화 식별자
 - `questionSetId`: 질문 세트 식별자
+- `trainerId`: 트레이너 식별자
 - `status`: 상태값
 - `title`: 제목
 - `description`: 설명
@@ -143,11 +147,27 @@
 - UX/UI 개선 작업은 기본적으로 새 DB 이름을 만들지 않습니다.
 - 화면 상태 저장이나 사용자 피드백 데이터가 필요할 때만 공통 이름 사전에 추가합니다.
 
+#### 트레이너 검증·채용
+
+- `photoUrl`: 프로필 사진 주소
+- `region`: 활동 지역
+- `careerYears`: 경력 연차
+- `isCertified`: 인증 트레이너 여부
+- `certifications`: 자격증 목록
+- `specialties`: 전문 분야 목록
+- `performanceSummary`: 성과 데이터 요약
+- `aiSummary`: AI 한줄 요약
+- `employmentType`: 고용 형태
+- `salaryTerms`: 급여 조건
+- `startDate`: 근무 시작일
+
 ### 역할 값
 
 - `candidate`: 지원자
 - `recruiter`: 채용담당자
 - `interviewer`: 면접관
+
+역할 매핑 노트: 트레이너 검증 채용 도메인에서는 새 역할 값을 추가하지 않고 기존 값을 재해석해서 씁니다. 센터 대표(채용 주체)는 `recruiter`, 트레이너(검증 대상)는 `candidate`로 사용합니다. `interviewer`는 이 도메인에서 아직 쓰이지 않습니다.
 
 ### 상태값 초안
 
@@ -162,6 +182,8 @@
 - `selected`: 선택됨
 - `completed`: 완료
 - `cancelled`: 취소됨
+- `active`: 활성 (트레이너 프로필 노출 중)
+- `inactive`: 비활성 (트레이너 프로필 비공개)
 
 ## 데이터 모델 초안
 
@@ -289,6 +311,48 @@
 - `createdAt`
 - `updatedAt`
 
+### trainers
+
+- `id`
+- `name`
+- `photoUrl`
+- `region`
+- `careerYears`
+- `isCertified`
+- `certifications`
+- `specialties`
+- `performanceSummary`
+- `recommendationReason`
+- `aiSummary`
+- `status`
+- `createdAt`
+- `updatedAt`
+
+관계 노트: 트레이너 1명이 여러 건의 케이스 테스트 항목 결과를 가질 수 있어 `trainers`에는 `caseTestResultId`처럼 단일 값을 참조하는 필드를 두지 않습니다. 대신 `evaluations`가 `applicationId`/`interviewId`를 참조하는 기존 패턴과 동일하게, 참조 키는 자식 컬렉션인 `caseTestResults` 쪽에 `trainerId`로 둡니다(1:N).
+
+### caseTestResults
+
+- `id`
+- `trainerId`
+- `evaluationItem`
+- `score`
+- `comment`
+- `source`
+- `createdAt`
+
+### hireProposals
+
+- `id`
+- `recruiterId`
+- `trainerId`
+- `employmentType`
+- `salaryTerms`
+- `startDate`
+- `message`
+- `status`
+- `createdAt`
+- `updatedAt`
+
 ## 최종 결정
 
 - 주요 컬렉션: 공통 이름 사전의 컬렉션 이름을 초안으로 사용
@@ -299,6 +363,9 @@
 - 더미 데이터 기준: 기능 검증에 필요한 최소만 작성
 - DB 연결 기준: 화면 컴포넌트와 데이터 접근 코드를 분리하고 Firebase 연결 코드는 한 곳에서 관리
 - 공통 이름 사전 기준: 새 컬렉션, 필드, 상태값, 역할 값은 구현 전에 이 문서에 먼저 추가
+- 트레이너 검증·채용 도메인 역할 매핑: 새 역할 값을 추가하지 않고, 센터 대표=`recruiter`, 트레이너=`candidate`로 기존 값을 재해석해서 사용
+- 트레이너 검증·채용 도메인 컬렉션: `trainers`, `caseTestResults`, `hireProposals`를 공통 이름 사전에 추가
+- `trainers`↔`caseTestResults` 관계: 1:N이므로 참조 키(`trainerId`)는 `caseTestResults`에 두고 `trainers`에는 역참조 필드를 두지 않음
 
 ## 변경 이력
 
@@ -306,3 +373,4 @@
 - 2026-05-29: 기본 데이터 기준을 최종 결정에 반영
 - 2026-05-29: 공통 이름 사전과 데이터 이름 추가 절차 반영
 - 2026-05-29: 일정 조율, 면접 질문 생성, 평가 과업에 필요한 공통 이름 보강
+- 2026-07-08: 트레이너 검증·채용 도메인 컬렉션(`trainers`/`caseTestResults`/`hireProposals`)과 역할 매핑 노트(센터 대표=`recruiter`, 트레이너=`candidate`) 추가
