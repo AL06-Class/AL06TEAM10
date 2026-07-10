@@ -54,7 +54,7 @@ export function filterTrainers(trainers: Trainer[], filters: OnboardingCondition
     .filter(
       (trainer) =>
         filters.specialties.length === 0 ||
-        trainer.specialties.some((specialty) => filters.specialties.includes(specialty))
+        filters.specialties.every((specialty) => trainer.specialties.includes(specialty))
     )
     .filter((trainer) => !filters.region || trainer.region === filters.region)
     .filter((trainer) => matchesCareerBand(trainer.careerYears, filters.career))

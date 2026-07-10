@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import TrainerCard from "../components/TrainerCard";
 import TrainerFilterBar from "../components/TrainerFilterBar";
@@ -9,6 +10,7 @@ import {
   type CertFilter,
   type EmploymentFilter,
 } from "./trainerFilters";
+import { saveConditionsToDraft } from "./onboardingConditions";
 
 function parseSpecialties(raw: string): string[] {
   return raw ? raw.split(",").filter(Boolean) : [];
@@ -55,11 +57,21 @@ export default function TrainerListPage() {
   const filteredTrainers = filterTrainers(trainers, currentFilters);
   const remainingTrainers = filteredTrainers.filter((trainer) => !recommendedIds.has(trainer.id));
 
+  // 필터 조건이 바뀔 때마다 온보딩 draft에도 동일 조건을 반영 — 필터↔온보딩 단일 소스.
+  // 센터정보(센터명·유형·트레이너 수)는 saveConditionsToDraft 내부에서 보존됨.
+  const specialtiesKey = specialties.join(",");
+  useEffect(() => {
+    saveConditionsToDraft({ specialties, region, career, cert, employment });
+  }, [specialtiesKey, region, career, cert, employment]);
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
-      <p className="mb-4 text-sm">
+      <p className="mb-4 flex gap-4 text-sm">
         <Link to="/" className="text-primary">
           홈으로 돌아가기
+        </Link>
+        <Link to="/onboarding" className="text-primary">
+          채용 조건 수정
         </Link>
       </p>
       <h1 className="mb-2 text-2xl font-bold text-ink">추천 트레이너 탐색</h1>

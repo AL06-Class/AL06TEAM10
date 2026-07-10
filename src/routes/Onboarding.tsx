@@ -4,46 +4,43 @@ import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
 import ChipGroup from "../components/ChipGroup";
 import Segmented from "../components/Segmented";
 import {
-  mapCareerRequirementToBand,
-  mapCertificationRequirementToFilter,
-  mapEmploymentTypeToFilter,
-  type CareerRequirement,
-  type CertificationRequirement,
-  type EmploymentTypeRequirement,
-} from "./onboardingConditions";
+  CERT_FILTER_OPTIONS,
+  EMPLOYMENT_FILTER_OPTIONS,
+  type CareerBand,
+  type CertFilter,
+  type EmploymentFilter,
+} from "./trainerFilters";
 import { ONBOARDING_DRAFT_KEY, loadInitialValue, serializeDraft } from "./onboardingDraft";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 
+// 온보딩 draft는 필터(Trainers.tsx)와 동일 스키마(specialties·region·career·cert·employment)를
+// 그대로 쓴다 — 필터↔온보딩 조건 동기화(단일 소스)를 위해 근사 매핑을 전부 제거했다.
 interface OnboardingFormState {
   centerName: string;
-  region: string;
   centerType: CenterType;
   currentTrainerCount: string;
-  desiredSpecialties: string[];
-  desiredCareer: CareerRequirement;
-  desiredCertification: CertificationRequirement;
-  employmentType: EmploymentTypeRequirement;
+  specialties: string[];
+  region: string;
+  career: CareerBand;
+  cert: CertFilter;
+  employment: EmploymentFilter;
 }
 
 const INITIAL_FORM_STATE: OnboardingFormState = {
   centerName: "",
-  region: "",
   centerType: "일반 헬스장",
   currentTrainerCount: "",
-  desiredSpecialties: [],
-  desiredCareer: "무관",
-  desiredCertification: "무관",
-  employmentType: "무관",
+  specialties: [],
+  region: "",
+  career: "",
+  cert: "",
+  employment: "",
 };
 
-// 🐛 회귀 수정(B): 이전에는 "마운트 시 localStorage 복원" 이펙트와 "form 변경마다 저장" 이펙트가
-// 분리돼 있었다. 최초 마운트 커밋에서 두 이펙트가 선언 순서대로 실행되는데, 저장 이펙트가
-// 복원 이펙트의 setState가 아직 반영되지 않은 "그 순간의 form"(=기본값)을 그대로 localStorage에
-// 덮어썼다. React.StrictMode(main.tsx가 앱을 감쌈)의 개발 모드 마운트→이펙트→언마운트→재마운트
-// 동작 때문에, 재마운트 시 복원 이펙트가 "이미 기본값으로 덮어써진" localStorage를 읽어 들여
-// 실제 저장된 초안이 복원 전에 영구히 사라졌다(정확한 원인, 추정 아님). lazy initializer로
-// 마운트 시 동기적으로 복원해 이 레이스를 원천 제거 — 저장 이펙트만 남기고 복원 이펙트는 삭제.
+// 🐛 회귀 수정(이전 사이클): 마운트 시 localStorage 복원은 useState lazy initializer로
+// 동기 수행 — effect 순서 레이스(React.StrictMode 이중 마운트에서 저장 이펙트가 기본값으로
+// 덮어쓰는 문제)를 원천 제거. 저장 이펙트만 유지.
 function loadInitialForm(): OnboardingFormState {
   return loadInitialValue(ONBOARDING_DRAFT_KEY, INITIAL_FORM_STATE);
 }
@@ -51,15 +48,15 @@ function loadInitialForm(): OnboardingFormState {
 const CENTER_TYPE_OPTIONS = (["일반 헬스장", "개인 PT 스튜디오", "필라테스·기타"] as CenterType[]).map(
   (option) => ({ value: option, label: option })
 );
-const CAREER_REQUIREMENT_OPTIONS = (["무관", "1년 이상", "3년 이상"] as CareerRequirement[]).map(
-  (option) => ({ value: option, label: option })
-);
-const CERTIFICATION_REQUIREMENT_OPTIONS = (
-  ["무관", "국가공인", "국제공인"] as CertificationRequirement[]
-).map((option) => ({ value: option, label: option }));
-const EMPLOYMENT_TYPE_OPTIONS = (["정직원", "프리랜서", "무관"] as EmploymentTypeRequirement[]).map(
-  (option) => ({ value: option, label: option })
-);
+
+// 필터 구간(무관/1~3년/4~7년/8년 이상)과 동일한 CareerBand 값 — 온보딩 전용 한글 라벨만 다름
+// ("전체" 대신 "무관"). 값 자체는 trainerFilters.ts의 CareerBand와 완전히 동일해 매핑 불필요.
+const CAREER_OPTIONS_FOR_ONBOARDING: { value: CareerBand; label: string }[] = [
+  { value: "", label: "무관" },
+  { value: "junior", label: "1~3년" },
+  { value: "mid", label: "4~7년" },
+  { value: "senior", label: "8년 이상" },
+];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -73,9 +70,9 @@ export default function Onboarding() {
   const toggleSpecialty = (specialty: string) => {
     setForm((prev) => ({
       ...prev,
-      desiredSpecialties: prev.desiredSpecialties.includes(specialty)
-        ? prev.desiredSpecialties.filter((item) => item !== specialty)
-        : [...prev.desiredSpecialties, specialty],
+      specialties: prev.specialties.includes(specialty)
+        ? prev.specialties.filter((item) => item !== specialty)
+        : [...prev.specialties, specialty],
     }));
   };
 
@@ -90,19 +87,11 @@ export default function Onboarding() {
     if (Object.keys(nextErrors).length > 0) return;
 
     const params = new URLSearchParams();
-    if (form.desiredSpecialties.length > 0) {
-      params.set("specialty", form.desiredSpecialties.join(","));
-    }
+    if (form.specialties.length > 0) params.set("specialty", form.specialties.join(","));
     if (form.region) params.set("region", form.region);
-
-    const careerBand = mapCareerRequirementToBand(form.desiredCareer);
-    if (careerBand) params.set("career", careerBand);
-
-    const certFilter = mapCertificationRequirementToFilter(form.desiredCertification);
-    if (certFilter) params.set("cert", certFilter);
-
-    const employmentFilter = mapEmploymentTypeToFilter(form.employmentType);
-    if (employmentFilter) params.set("employment", employmentFilter);
+    if (form.career) params.set("career", form.career);
+    if (form.cert) params.set("cert", form.cert);
+    if (form.employment) params.set("employment", form.employment);
 
     navigate(`/trainers?${params.toString()}`);
   };
@@ -185,35 +174,28 @@ export default function Onboarding() {
             <div className="flex flex-col gap-1 text-sm text-[#52606d]">
               경력
               <Segmented
-                options={CAREER_REQUIREMENT_OPTIONS}
-                value={form.desiredCareer}
-                onChange={(value) =>
-                  setForm((prev) => ({ ...prev, desiredCareer: value as CareerRequirement }))
-                }
+                options={CAREER_OPTIONS_FOR_ONBOARDING}
+                value={form.career}
+                onChange={(value) => setForm((prev) => ({ ...prev, career: value as CareerBand }))}
               />
             </div>
 
             <div className="flex flex-col gap-1 text-sm text-[#52606d]">
               자격증
               <Segmented
-                options={CERTIFICATION_REQUIREMENT_OPTIONS}
-                value={form.desiredCertification}
-                onChange={(value) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    desiredCertification: value as CertificationRequirement,
-                  }))
-                }
+                options={CERT_FILTER_OPTIONS}
+                value={form.cert}
+                onChange={(value) => setForm((prev) => ({ ...prev, cert: value as CertFilter }))}
               />
             </div>
 
             <div className="flex flex-col gap-1 text-sm text-[#52606d]">
               고용 형태
               <Segmented
-                options={EMPLOYMENT_TYPE_OPTIONS}
-                value={form.employmentType}
+                options={EMPLOYMENT_FILTER_OPTIONS}
+                value={form.employment}
                 onChange={(value) =>
-                  setForm((prev) => ({ ...prev, employmentType: value as EmploymentTypeRequirement }))
+                  setForm((prev) => ({ ...prev, employment: value as EmploymentFilter }))
                 }
               />
             </div>
@@ -222,7 +204,7 @@ export default function Onboarding() {
               원하는 전문 분야
               <ChipGroup
                 options={SPECIALTY_OPTIONS}
-                selected={form.desiredSpecialties}
+                selected={form.specialties}
                 onToggle={toggleSpecialty}
               />
             </div>
