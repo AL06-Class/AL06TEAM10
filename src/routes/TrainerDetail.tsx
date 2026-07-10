@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
+import Avatar from "../components/Avatar";
 import { getRecommendedTrainers } from "./trainerFilters";
 import { loadOnboardingConditions } from "./onboardingConditions";
 
@@ -43,11 +44,7 @@ export default function TrainerProfileDetailPage() {
         <div className="flex flex-col gap-6">
           <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
             <div className="flex items-start gap-4">
-              <img
-                src={trainer.photoUrl}
-                alt={`${trainer.name} 프로필 사진`}
-                className="h-20 w-20 rounded-full object-cover"
-              />
+              <Avatar name={trainer.name} photoUrl={trainer.photoUrl} sizeClassName="h-20 w-20" />
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl font-bold text-ink">{trainer.name}</h1>
                 <p className="mt-1 text-sm text-[#52606d]">

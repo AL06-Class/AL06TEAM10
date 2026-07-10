@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Trainer } from "../data/trainers";
+import Avatar from "./Avatar";
 
 interface TrainerCardProps {
   trainer: Trainer;
@@ -19,11 +20,7 @@ export default function TrainerCard({ trainer, recommended }: TrainerCardProps) 
           </span>
         )}
         <div className="flex items-start gap-4">
-          <img
-            src={trainer.photoUrl}
-            alt={`${trainer.name} 프로필 사진`}
-            className="h-16 w-16 rounded-full object-cover"
-          />
+          <Avatar name={trainer.name} photoUrl={trainer.photoUrl} sizeClassName="h-16 w-16" />
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-bold text-ink">{trainer.name}</h3>
             <p className="text-sm text-[#52606d]">

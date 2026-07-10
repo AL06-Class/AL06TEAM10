@@ -597,7 +597,7 @@ export const trainers: Trainer[] = [
   {
     id: "t32",
     name: "오지우",
-    photoUrl: "https://i.pravatar.cc/160?img=71",
+    photoUrl: "",
     region: "경기",
     careerYears: 1,
     isCertified: true,
@@ -615,7 +615,7 @@ export const trainers: Trainer[] = [
   {
     id: "t33",
     name: "한지우",
-    photoUrl: "https://i.pravatar.cc/160?img=72",
+    photoUrl: "",
     region: "인천",
     careerYears: 8,
     isCertified: true,
@@ -633,7 +633,7 @@ export const trainers: Trainer[] = [
   {
     id: "t34",
     name: "서지우",
-    photoUrl: "https://i.pravatar.cc/160?img=73",
+    photoUrl: "",
     region: "부산",
     careerYears: 15,
     isCertified: true,
@@ -651,7 +651,7 @@ export const trainers: Trainer[] = [
   {
     id: "t35",
     name: "최지우",
-    photoUrl: "https://i.pravatar.cc/160?img=74",
+    photoUrl: "",
     region: "서울",
     careerYears: 7,
     isCertified: true,
@@ -669,7 +669,7 @@ export const trainers: Trainer[] = [
   {
     id: "t36",
     name: "박지우",
-    photoUrl: "https://i.pravatar.cc/160?img=75",
+    photoUrl: "",
     region: "경기",
     careerYears: 14,
     isCertified: true,
@@ -687,7 +687,7 @@ export const trainers: Trainer[] = [
   {
     id: "t37",
     name: "이지우",
-    photoUrl: "https://i.pravatar.cc/160?img=76",
+    photoUrl: "",
     region: "인천",
     careerYears: 6,
     isCertified: true,
@@ -705,7 +705,7 @@ export const trainers: Trainer[] = [
   {
     id: "t38",
     name: "김지우",
-    photoUrl: "https://i.pravatar.cc/160?img=77",
+    photoUrl: "",
     region: "부산",
     careerYears: 13,
     isCertified: true,
@@ -723,7 +723,7 @@ export const trainers: Trainer[] = [
   {
     id: "t39",
     name: "정지우",
-    photoUrl: "https://i.pravatar.cc/160?img=78",
+    photoUrl: "",
     region: "서울",
     careerYears: 5,
     isCertified: true,
@@ -741,7 +741,7 @@ export const trainers: Trainer[] = [
   {
     id: "t40",
     name: "장지우",
-    photoUrl: "https://i.pravatar.cc/160?img=79",
+    photoUrl: "",
     region: "경기",
     careerYears: 12,
     isCertified: true,
@@ -759,7 +759,7 @@ export const trainers: Trainer[] = [
   {
     id: "t41",
     name: "권지우",
-    photoUrl: "https://i.pravatar.cc/160?img=80",
+    photoUrl: "",
     region: "인천",
     careerYears: 4,
     isCertified: true,
@@ -777,7 +777,7 @@ export const trainers: Trainer[] = [
   {
     id: "t42",
     name: "홍지우",
-    photoUrl: "https://i.pravatar.cc/160?img=81",
+    photoUrl: "",
     region: "부산",
     careerYears: 11,
     isCertified: true,
@@ -795,7 +795,7 @@ export const trainers: Trainer[] = [
   {
     id: "t43",
     name: "진지우",
-    photoUrl: "https://i.pravatar.cc/160?img=82",
+    photoUrl: "",
     region: "서울",
     careerYears: 3,
     isCertified: true,
@@ -813,7 +813,7 @@ export const trainers: Trainer[] = [
   {
     id: "t44",
     name: "구지우",
-    photoUrl: "https://i.pravatar.cc/160?img=83",
+    photoUrl: "",
     region: "경기",
     careerYears: 10,
     isCertified: true,
@@ -831,7 +831,7 @@ export const trainers: Trainer[] = [
   {
     id: "t45",
     name: "석지우",
-    photoUrl: "https://i.pravatar.cc/160?img=84",
+    photoUrl: "",
     region: "인천",
     careerYears: 2,
     isCertified: true,
@@ -849,7 +849,7 @@ export const trainers: Trainer[] = [
   {
     id: "t46",
     name: "연지우",
-    photoUrl: "https://i.pravatar.cc/160?img=85",
+    photoUrl: "",
     region: "부산",
     careerYears: 9,
     isCertified: true,
@@ -867,7 +867,7 @@ export const trainers: Trainer[] = [
   {
     id: "t47",
     name: "우지우",
-    photoUrl: "https://i.pravatar.cc/160?img=86",
+    photoUrl: "",
     region: "서울",
     careerYears: 1,
     isCertified: true,
@@ -885,7 +885,7 @@ export const trainers: Trainer[] = [
   {
     id: "t48",
     name: "좌지우",
-    photoUrl: "https://i.pravatar.cc/160?img=87",
+    photoUrl: "",
     region: "경기",
     careerYears: 8,
     isCertified: true,
@@ -903,7 +903,7 @@ export const trainers: Trainer[] = [
   {
     id: "t49",
     name: "동지우",
-    photoUrl: "https://i.pravatar.cc/160?img=88",
+    photoUrl: "",
     region: "인천",
     careerYears: 15,
     isCertified: true,
@@ -921,7 +921,7 @@ export const trainers: Trainer[] = [
   {
     id: "t50",
     name: "서문지우",
-    photoUrl: "https://i.pravatar.cc/160?img=89",
+    photoUrl: "",
     region: "부산",
     careerYears: 7,
     isCertified: true,
@@ -939,7 +939,7 @@ export const trainers: Trainer[] = [
   {
     id: "t51",
     name: "강현서",
-    photoUrl: "https://i.pravatar.cc/160?img=90",
+    photoUrl: "",
     region: "서울",
     careerYears: 14,
     isCertified: true,
@@ -957,7 +957,7 @@ export const trainers: Trainer[] = [
   {
     id: "t52",
     name: "노현서",
-    photoUrl: "https://i.pravatar.cc/160?img=91",
+    photoUrl: "",
     region: "경기",
     careerYears: 6,
     isCertified: true,
@@ -975,7 +975,7 @@ export const trainers: Trainer[] = [
   {
     id: "t53",
     name: "문현서",
-    photoUrl: "https://i.pravatar.cc/160?img=92",
+    photoUrl: "",
     region: "인천",
     careerYears: 13,
     isCertified: true,
@@ -993,7 +993,7 @@ export const trainers: Trainer[] = [
   {
     id: "t54",
     name: "배현서",
-    photoUrl: "https://i.pravatar.cc/160?img=93",
+    photoUrl: "",
     region: "부산",
     careerYears: 5,
     isCertified: true,
@@ -1011,7 +1011,7 @@ export const trainers: Trainer[] = [
   {
     id: "t55",
     name: "송현서",
-    photoUrl: "https://i.pravatar.cc/160?img=94",
+    photoUrl: "",
     region: "서울",
     careerYears: 12,
     isCertified: true,
@@ -1029,7 +1029,7 @@ export const trainers: Trainer[] = [
   {
     id: "t56",
     name: "안현서",
-    photoUrl: "https://i.pravatar.cc/160?img=95",
+    photoUrl: "",
     region: "경기",
     careerYears: 4,
     isCertified: true,
@@ -1047,7 +1047,7 @@ export const trainers: Trainer[] = [
   {
     id: "t57",
     name: "유현서",
-    photoUrl: "https://i.pravatar.cc/160?img=96",
+    photoUrl: "",
     region: "인천",
     careerYears: 11,
     isCertified: true,
@@ -1065,7 +1065,7 @@ export const trainers: Trainer[] = [
   {
     id: "t58",
     name: "임현서",
-    photoUrl: "https://i.pravatar.cc/160?img=97",
+    photoUrl: "",
     region: "부산",
     careerYears: 3,
     isCertified: true,
@@ -1083,7 +1083,7 @@ export const trainers: Trainer[] = [
   {
     id: "t59",
     name: "조현서",
-    photoUrl: "https://i.pravatar.cc/160?img=98",
+    photoUrl: "",
     region: "서울",
     careerYears: 10,
     isCertified: true,
@@ -1101,7 +1101,7 @@ export const trainers: Trainer[] = [
   {
     id: "t60",
     name: "표현서",
-    photoUrl: "https://i.pravatar.cc/160?img=99",
+    photoUrl: "",
     region: "경기",
     careerYears: 2,
     isCertified: true,
@@ -1119,7 +1119,7 @@ export const trainers: Trainer[] = [
   {
     id: "t61",
     name: "하현서",
-    photoUrl: "https://i.pravatar.cc/160?img=100",
+    photoUrl: "",
     region: "인천",
     careerYears: 9,
     isCertified: true,
@@ -1137,7 +1137,7 @@ export const trainers: Trainer[] = [
   {
     id: "t62",
     name: "황현서",
-    photoUrl: "https://i.pravatar.cc/160?img=101",
+    photoUrl: "",
     region: "부산",
     careerYears: 1,
     isCertified: true,
@@ -1155,7 +1155,7 @@ export const trainers: Trainer[] = [
   {
     id: "t63",
     name: "고현서",
-    photoUrl: "https://i.pravatar.cc/160?img=102",
+    photoUrl: "",
     region: "서울",
     careerYears: 8,
     isCertified: true,
@@ -1173,7 +1173,7 @@ export const trainers: Trainer[] = [
   {
     id: "t64",
     name: "남궁현서",
-    photoUrl: "https://i.pravatar.cc/160?img=103",
+    photoUrl: "",
     region: "경기",
     careerYears: 15,
     isCertified: true,
@@ -1191,7 +1191,7 @@ export const trainers: Trainer[] = [
   {
     id: "t65",
     name: "도현서",
-    photoUrl: "https://i.pravatar.cc/160?img=104",
+    photoUrl: "",
     region: "인천",
     careerYears: 7,
     isCertified: true,
@@ -1209,7 +1209,7 @@ export const trainers: Trainer[] = [
   {
     id: "t66",
     name: "마현서",
-    photoUrl: "https://i.pravatar.cc/160?img=105",
+    photoUrl: "",
     region: "부산",
     careerYears: 14,
     isCertified: true,
@@ -1227,7 +1227,7 @@ export const trainers: Trainer[] = [
   {
     id: "t67",
     name: "백현서",
-    photoUrl: "https://i.pravatar.cc/160?img=106",
+    photoUrl: "",
     region: "서울",
     careerYears: 6,
     isCertified: true,
@@ -1245,7 +1245,7 @@ export const trainers: Trainer[] = [
   {
     id: "t68",
     name: "신현서",
-    photoUrl: "https://i.pravatar.cc/160?img=107",
+    photoUrl: "",
     region: "경기",
     careerYears: 13,
     isCertified: true,
@@ -1263,7 +1263,7 @@ export const trainers: Trainer[] = [
   {
     id: "t69",
     name: "엄현서",
-    photoUrl: "https://i.pravatar.cc/160?img=108",
+    photoUrl: "",
     region: "인천",
     careerYears: 5,
     isCertified: true,
@@ -1281,7 +1281,7 @@ export const trainers: Trainer[] = [
   {
     id: "t70",
     name: "전현서",
-    photoUrl: "https://i.pravatar.cc/160?img=109",
+    photoUrl: "",
     region: "부산",
     careerYears: 12,
     isCertified: true,
@@ -1299,7 +1299,7 @@ export const trainers: Trainer[] = [
   {
     id: "t71",
     name: "윤현서",
-    photoUrl: "https://i.pravatar.cc/160?img=110",
+    photoUrl: "",
     region: "서울",
     careerYears: 4,
     isCertified: true,
@@ -1317,7 +1317,7 @@ export const trainers: Trainer[] = [
   {
     id: "t72",
     name: "오현서",
-    photoUrl: "https://i.pravatar.cc/160?img=111",
+    photoUrl: "",
     region: "경기",
     careerYears: 11,
     isCertified: true,
@@ -1335,7 +1335,7 @@ export const trainers: Trainer[] = [
   {
     id: "t73",
     name: "한현서",
-    photoUrl: "https://i.pravatar.cc/160?img=112",
+    photoUrl: "",
     region: "인천",
     careerYears: 3,
     isCertified: true,
@@ -1353,7 +1353,7 @@ export const trainers: Trainer[] = [
   {
     id: "t74",
     name: "서현서",
-    photoUrl: "https://i.pravatar.cc/160?img=113",
+    photoUrl: "",
     region: "부산",
     careerYears: 10,
     isCertified: true,
@@ -1371,7 +1371,7 @@ export const trainers: Trainer[] = [
   {
     id: "t75",
     name: "최현서",
-    photoUrl: "https://i.pravatar.cc/160?img=114",
+    photoUrl: "",
     region: "서울",
     careerYears: 2,
     isCertified: true,
@@ -1389,7 +1389,7 @@ export const trainers: Trainer[] = [
   {
     id: "t76",
     name: "박현서",
-    photoUrl: "https://i.pravatar.cc/160?img=115",
+    photoUrl: "",
     region: "경기",
     careerYears: 9,
     isCertified: false,
@@ -1407,7 +1407,7 @@ export const trainers: Trainer[] = [
   {
     id: "t77",
     name: "이현서",
-    photoUrl: "https://i.pravatar.cc/160?img=116",
+    photoUrl: "",
     region: "인천",
     careerYears: 1,
     isCertified: false,
@@ -1425,7 +1425,7 @@ export const trainers: Trainer[] = [
   {
     id: "t78",
     name: "김현서",
-    photoUrl: "https://i.pravatar.cc/160?img=117",
+    photoUrl: "",
     region: "부산",
     careerYears: 8,
     isCertified: false,
@@ -1443,7 +1443,7 @@ export const trainers: Trainer[] = [
   {
     id: "t79",
     name: "정현서",
-    photoUrl: "https://i.pravatar.cc/160?img=118",
+    photoUrl: "",
     region: "서울",
     careerYears: 15,
     isCertified: false,
@@ -1461,7 +1461,7 @@ export const trainers: Trainer[] = [
   {
     id: "t80",
     name: "장현서",
-    photoUrl: "https://i.pravatar.cc/160?img=119",
+    photoUrl: "",
     region: "경기",
     careerYears: 7,
     isCertified: false,
