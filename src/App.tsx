@@ -1,4 +1,15 @@
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createDemoOffers,
+  createInitialTrainerState,
+  scoreCaseTest,
+  validateCaseTestAnswers,
+  type CandidateProfile,
+  type CaseTestResult,
+  type HiringOffer,
+  type OfferStatus,
+  type Specialty
+} from "./trainerFlow";
 import "./App.css";
 
 type ScreenId =
@@ -14,28 +25,7 @@ type ScreenId =
   | "offerDetail"
   | "confirmed";
 
-type ResultTone = "pass" | "fail";
-type ModalKind = "submit" | "decline" | null;
-type OfferStatus = "pending" | "accepted" | "declined" | "cancelled";
-
-type Specialty = {
-  name: string;
-  level: number;
-};
-
-type Offer = {
-  center: string;
-  type: string;
-  salary: string;
-  startDate: string;
-  date: string;
-  extra: string;
-  manager: string;
-  phone: string;
-  email: string;
-  status: OfferStatus;
-  message: string;
-};
+type ModalKind = "submit" | "accept" | "decline" | "leaveTest" | null;
 
 type MenuEntry = {
   label: string;
@@ -46,73 +36,13 @@ type MenuEntry = {
 
 const levelLabels = ["미선택", "하", "중하", "중", "중상", "상"];
 
-const baseOffers: Offer[] = [
-  {
-    center: "강남 리포머 피트니스",
-    type: "정직원",
-    salary: "월 290만원 + 인센티브",
-    startDate: "2026.08.01",
-    date: "2026.07.18",
-    extra: "주 5일 · 오후 1시~9시",
-    manager: "박서윤 매니저",
-    phone: "010-4821-9033",
-    email: "hire@reformer-gangnam.example",
-    status: "pending",
-    message:
-      "재활 PT 경험과 회원 유지 성과를 보고 제안드립니다. 주 5일 오후 근무를 우선 협의하고 싶습니다."
-  },
-  {
-    center: "마포 바디밸런스 스튜디오",
-    type: "프리랜서",
-    salary: "세션당 4.5만원",
-    startDate: "2026.07.28",
-    date: "2026.07.15",
-    extra: "주 3~4일 · 스케줄 협의",
-    manager: "정하늘 실장",
-    phone: "010-2277-5510",
-    email: "team@bodybalance-mapo.example",
-    status: "pending",
-    message:
-      "그룹 리포머와 1:1 재활 세션을 함께 맡아 주실 분을 찾고 있어요. 스케줄은 유연하게 조율할 수 있습니다."
-  },
-  {
-    center: "성수 스트렝스랩",
-    type: "파트타임",
-    salary: "시급 3.2만원",
-    startDate: "2026.08.05",
-    date: "2026.07.12",
-    extra: "주 3일 · 저녁 시간대",
-    manager: "김도현 대표",
-    phone: "010-9033-1188",
-    email: "recruit@strengthlab.example",
-    status: "pending",
-    message:
-      "퍼포먼스 향상과 체형 교정에 강점 있는 트레이너를 찾습니다. 초기 온보딩은 저희가 지원합니다."
-  }
-];
-
-const scoreRows = {
-  pass: [
-    { name: "평가 능력", value: 80 },
-    { name: "운동 처방", value: 88 },
-    { name: "커뮤니케이션", value: 72 },
-    { name: "안전 고려", value: 90 }
-  ],
-  fail: [
-    { name: "평가 능력", value: 74 },
-    { name: "운동 처방", value: 77 },
-    { name: "커뮤니케이션", value: 70 },
-    { name: "안전 고려", value: 83 }
-  ]
-};
-
 const screenTitles: Record<ScreenId, string> = {
   ob1: "프로필 등록",
   ob2: "프로필 등록",
   ob3: "프로필 등록",
   caseIntro: "케이스 테스트",
   caseSession: "케이스 테스트",
-  result: "채점 결과",
+  result: "예시 채점 결과",
   certified: "인증 완료",
   mypage: "마이페이지",
   offers: "받은 제안",
@@ -125,8 +55,17 @@ function fieldValue(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) 
 }
 
 function resetOffers() {
-  return baseOffers.map((offer) => ({ ...offer }));
+  return createDemoOffers();
 }
+
+const reviewSeed = createInitialTrainerState(true);
+const demoPassResult = reviewSeed.caseResult;
+const fallbackOffer = createDemoOffers()[0];
+
+const demoFailResult = scoreCaseTest(
+  "회원에게 불편한 부분을 충분히 물어보고 현재 상태를 전반적으로 확인한 다음 신중하게 판단하겠습니다.",
+  "처음에는 쉬운 운동부터 시작하고 상태가 좋아지는지 지켜보겠습니다. 이후에는 조금씩 어려운 운동을 추가하면서 무리하지 않도록 조절하고 꾸준히 진행하겠습니다."
+);
 
 function formatTime(totalSeconds: number) {
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
@@ -136,9 +75,16 @@ function formatTime(totalSeconds: number) {
 
 function ProgressSteps({ active }: { active: number }) {
   return (
-    <div className="progressSteps" aria-label={`온보딩 ${active}단계`}>
+    <div
+      aria-label={`온보딩 ${active}단계`}
+      aria-valuemax={3}
+      aria-valuemin={1}
+      aria-valuenow={active}
+      className="progressSteps"
+      role="progressbar"
+    >
       {[1, 2, 3].map((step) => (
-        <span className={step <= active ? "active" : ""} key={step} />
+        <span aria-hidden="true" className={step <= active ? "active" : ""} key={step} />
       ))}
     </div>
   );
@@ -158,37 +104,32 @@ function StatusBadge({ status }: { status: OfferStatus | "verified" | "unverifie
 }
 
 export default function App() {
+  const reviewMode = new URLSearchParams(window.location.search).get("review") === "1";
+  const initialState = useMemo(() => createInitialTrainerState(reviewMode), [reviewMode]);
   const [screen, setScreen] = useState<ScreenId>("ob1");
   const [stack, setStack] = useState<ScreenId[]>([]);
-  const [name, setName] = useState("한민서");
-  const [region, setRegion] = useState("서울 강남 · 서초");
-  const [career, setCareer] = useState("3년 8개월");
-  const [cert, setCert] = useState("생활스포츠지도사 2급, NASM-CES");
-  const [intro, setIntro] = useState("통증 이력이 있는 회원의 안전한 재활 운동을 돕습니다.");
-  const [specialties, setSpecialties] = useState<Specialty[]>([
-    { name: "재활", level: 5 },
-    { name: "다이어트", level: 4 },
-    { name: "시니어 트레이닝", level: 3 },
-    { name: "퍼포먼스 / 스포츠", level: 0 },
-    { name: "체형 교정", level: 0 },
-    { name: "바디프로필 준비", level: 0 }
-  ]);
-  const [members, setMembers] = useState("142");
-  const [reReg, setReReg] = useState("78");
-  const [ptDur, setPtDur] = useState("5.6");
-  const [answer1, setAnswer1] = useState(
-    "통증 발생 시점, 과거 병력, 통증 강도(NRS), 계단 외 통증 유발 동작, 병원 진단·영상 여부를 먼저 확인합니다."
-  );
-  const [answer2, setAnswer2] = useState(
-    "1~2주는 통증 없는 범위에서 고관절 힌지와 둔근 활성화를 확인하고, 3~4주에 박스 스쿼트와 낮은 스텝업으로 점진 부하를 설계합니다. 매 세션 통증 반응을 재평가합니다."
-  );
+  const [name, setName] = useState(initialState.profile.name);
+  const [region, setRegion] = useState(initialState.profile.activeRegion);
+  const [career, setCareer] = useState(initialState.profile.careerYears);
+  const [cert, setCert] = useState(initialState.profile.certifications);
+  const [intro, setIntro] = useState(initialState.profile.introduction);
+  const [specialties, setSpecialties] = useState<Specialty[]>(initialState.profile.specialties);
+  const [members, setMembers] = useState(initialState.performanceStats.totalCoachedMembers);
+  const [reReg, setReReg] = useState(initialState.performanceStats.averageReenrollmentRate);
+  const [ptDur, setPtDur] = useState(initialState.performanceStats.averagePtDurationMonths);
+  const [answer1, setAnswer1] = useState(initialState.answers.assessment);
+  const [answer2, setAnswer2] = useState(initialState.answers.prescription);
   const [seconds, setSeconds] = useState(20 * 60);
-  const [resultTone, setResultTone] = useState<ResultTone>("pass");
-  const [verified, setVerified] = useState(false);
-  const [offers, setOffers] = useState<Offer[]>(resetOffers);
+  const [caseResult, setCaseResult] = useState<CaseTestResult>(initialState.caseResult);
+  const [verified, setVerified] = useState(initialState.verified);
+  const [offers, setOffers] = useState<HiringOffer[]>(initialState.offers);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(initialState.onboardingCompleted);
+  const [caseDetailsOpen, setCaseDetailsOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(0);
   const [modal, setModal] = useState<ModalKind>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const modalRef = useRef<HTMLElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
 
   const ob1Invalid = !(name.trim() && region.trim() && career.trim());
   const selectedSpecialties = useMemo(
@@ -196,27 +137,43 @@ export default function App() {
     [specialties]
   );
   const ob2Invalid = selectedSpecialties.length === 0;
-  const activeOffer = offers[selectedOffer] ?? offers[0] ?? baseOffers[0];
-  const score = resultTone === "pass" ? 82 : 76;
+  const activeOffer = offers[selectedOffer] ?? offers[0] ?? fallbackOffer;
+  const answerValidation = useMemo(
+    () => validateCaseTestAnswers(answer1, answer2),
+    [answer1, answer2]
+  );
+  const candidateProfile = useMemo<CandidateProfile>(
+    () => ({
+      name,
+      activeRegion: region,
+      careerYears: career,
+      certifications: cert,
+      introduction: intro,
+      specialties: selectedSpecialties
+    }),
+    [career, cert, intro, name, region, selectedSpecialties]
+  );
+  const testExpired = seconds === 0;
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    window.scrollTo({ top: 0, behavior });
   }, [screen]);
 
   useEffect(() => {
-    if (screen !== "caseSession") {
+    if (screen !== "caseSession" || seconds === 0) {
       return undefined;
     }
 
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setSeconds((current) => Math.max(0, current - 1));
     }, 1000);
 
-    return () => window.clearInterval(timer);
-  }, [screen]);
+    return () => window.clearTimeout(timer);
+  }, [screen, seconds]);
 
   useEffect(() => {
-    if (screen !== "caseSession") {
+    if (screen !== "caseSession" || testExpired) {
       return undefined;
     }
 
@@ -227,7 +184,50 @@ export default function App() {
 
     window.addEventListener("beforeunload", warnBeforeLeave);
     return () => window.removeEventListener("beforeunload", warnBeforeLeave);
-  }, [screen]);
+  }, [screen, testExpired]);
+
+  useEffect(() => {
+    const surface = modal ? modalRef.current : menuOpen ? drawerRef.current : null;
+    if (!surface) {
+      return undefined;
+    }
+
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = Array.from(
+      surface.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    focusable[0]?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setModal(null);
+        setMenuOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab" || focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [menuOpen, modal]);
 
   const go = (next: ScreenId, setup?: () => void) => {
     setup?.();
@@ -243,7 +243,7 @@ export default function App() {
     setMenuOpen(false);
   };
 
-  const back = () => {
+  const performBack = () => {
     setStack((current) => {
       if (current.length === 0) {
         return current;
@@ -258,15 +258,47 @@ export default function App() {
     });
   };
 
+  const back = () => {
+    if (screen === "caseSession" && !testExpired) {
+      setModal("leaveTest");
+      return;
+    }
+    performBack();
+  };
+
+  const leaveTest = () => {
+    setAnswer1("");
+    setAnswer2("");
+    setSeconds(20 * 60);
+    setModal(null);
+    performBack();
+  };
+
   const startTest = () => {
     setSeconds(20 * 60);
+    setCaseDetailsOpen(false);
     go("caseSession");
+  };
+
+  const restartTest = () => {
+    setSeconds(20 * 60);
+    setAnswer1("");
+    setAnswer2("");
+    setCaseDetailsOpen(false);
+  };
+
+  const submitCaseTest = () => {
+    const nextResult = scoreCaseTest(answer1, answer2);
+    setCaseResult(nextResult);
+    setVerified(nextResult.tone === "pass");
+    setModal(null);
+    go("result");
   };
 
   const setLevel = (index: number, level: number) => {
     setSpecialties((current) =>
       current.map((specialty, currentIndex) =>
-        currentIndex === index ? { ...specialty, level: specialty.level === level ? 0 : level } : specialty
+        currentIndex === index ? { ...specialty, level } : specialty
       )
     );
   };
@@ -275,6 +307,7 @@ export default function App() {
     setOffers((current) =>
       current.map((offer, index) => (index === selectedOffer ? { ...offer, status: "accepted" } : offer))
     );
+    setModal(null);
     go("confirmed");
   };
 
@@ -286,16 +319,60 @@ export default function App() {
     go("offers");
   };
 
+  const onboardingScreens: ScreenId[] = ["ob1", "ob2", "ob3", "caseIntro", "caseSession"];
+  const showCandidateNav = onboardingCompleted && !onboardingScreens.includes(screen);
+  const profileTabActive = screen === "mypage" || screen === "certified";
+  const offersTabActive = screen === "offers" || screen === "offerDetail" || screen === "confirmed";
+
+  const navigatePrimary = (next: "mypage" | "offers") => {
+    setStack([]);
+    setScreen(next);
+    setMenuOpen(false);
+  };
+
   const menuEntries: MenuEntry[] = [
     { label: "온보딩 1 · 기본 정보", sub: "이름·지역·경력 입력", screen: "ob1" },
     { label: "온보딩 2 · 전문 분야", sub: "숙련도 1~5 선택", screen: "ob2" },
     { label: "온보딩 3 · 성과 데이터", sub: "선택 입력", screen: "ob3" },
     { label: "케이스 테스트 안내", sub: "기준·채점 영역", screen: "caseIntro" },
     { label: "케이스 테스트 응시", sub: "타이머·서술형 답변", screen: "caseSession", setup: () => setSeconds(20 * 60) },
-    { label: "채점 결과 · PASS", sub: "인증 통과 상태", screen: "result", setup: () => setResultTone("pass") },
-    { label: "채점 결과 · FAIL", sub: "인증 미달 상태", screen: "result", setup: () => setResultTone("fail") },
-    { label: "인증 완료", sub: "인증 뱃지·점수", screen: "certified", setup: () => setVerified(true) },
-    { label: "마이페이지 · 인증 후", sub: "점수·제안·이력", screen: "mypage", setup: () => setVerified(true) },
+    { label: "케이스 테스트 · 시간 종료", sub: "재시작 상태", screen: "caseSession", setup: () => setSeconds(0) },
+    {
+      label: "채점 결과 · PASS",
+      sub: "인증 통과 상태",
+      screen: "result",
+      setup: () => {
+        setVerified(false);
+        setCaseResult(demoPassResult);
+      }
+    },
+    {
+      label: "채점 결과 · FAIL",
+      sub: "인증 미달 상태",
+      screen: "result",
+      setup: () => {
+        setVerified(false);
+        setCaseResult(demoFailResult);
+      }
+    },
+    {
+      label: "인증 완료",
+      sub: "인증 뱃지·점수",
+      screen: "certified",
+      setup: () => {
+        setVerified(true);
+        setCaseResult(demoPassResult);
+      }
+    },
+    {
+      label: "마이페이지 · 인증 후",
+      sub: "점수·제안·이력",
+      screen: "mypage",
+      setup: () => {
+        setVerified(true);
+        setCaseResult(demoPassResult);
+      }
+    },
     { label: "마이페이지 · 인증 전", sub: "empty state", screen: "mypage", setup: () => setVerified(false) },
     { label: "받은 제안 목록", sub: "제안 3건", screen: "offers", setup: () => setOffers(resetOffers()) },
     { label: "받은 제안 · 0건", sub: "empty state", screen: "offers", setup: () => setOffers([]) },
@@ -325,7 +402,7 @@ export default function App() {
     switch (screen) {
       case "ob1":
         return (
-          <section className="flowCard narrow">
+          <section className="flowSurface narrow">
             <ProgressSteps active={1} />
             <div className="screenGrid">
               <div>
@@ -387,35 +464,63 @@ export default function App() {
 
       case "ob2":
         return (
-          <section className="flowCard compact">
+          <section className="flowSurface compact">
             <ProgressSteps active={2} />
+            <div className="flowMilestone" role="status">기본 정보 입력 완료</div>
             <p className="kicker">온보딩 2 / 3</p>
             <h1>전문 분야와 숙련도</h1>
             <p className="lead">최소 1개 이상 선택하고, 1~5 척도로 숙련도를 표시하세요.</p>
+            <div className="scaleLegend" aria-label="숙련도 척도 안내">
+              {levelLabels.slice(1).map((label, index) => (
+                <span key={label}><b>{index + 1}</b>{label}</span>
+              ))}
+            </div>
             <div className="specialtyGrid">
               {specialties.map((specialty, index) => (
                 <article className="specialtyCard" key={specialty.name}>
-                  <div>
-                    <strong>{specialty.name}</strong>
-                    <span>{specialty.level > 0 ? `${specialty.level} / 5 · ${levelLabels[specialty.level]}` : "미선택"}</span>
+                  <div className="specialtyHeader">
+                    <div>
+                      <strong>{specialty.name}</strong>
+                      <span>{specialty.level > 0 ? `${specialty.level} / 5 · ${levelLabels[specialty.level]}` : "미선택"}</span>
+                    </div>
+                    <button
+                      aria-label={`${specialty.name} 미선택`}
+                      className="clearLevelButton"
+                      disabled={specialty.level === 0}
+                      onClick={() => setLevel(index, 0)}
+                      type="button"
+                    >
+                      미선택
+                    </button>
                   </div>
-                  <div className="levelButtons" aria-label={`${specialty.name} 숙련도`}>
+                  <span className="srOnly" id={`specialty-${index}-clear-help`}>
+                    선택을 해제하려면 {specialty.name} 미선택 버튼을 사용하세요.
+                  </span>
+                  <div
+                    aria-describedby={`specialty-${index}-clear-help`}
+                    aria-label={`${specialty.name} 숙련도`}
+                    className="levelButtons"
+                    role="radiogroup"
+                  >
                     {[1, 2, 3, 4, 5].map((level) => (
-                      <button
-                        className={level <= specialty.level ? "active" : ""}
-                        key={level}
-                        onClick={() => setLevel(index, level)}
-                        type="button"
-                      >
-                        {level}
-                      </button>
+                      <label className={level === specialty.level ? "active" : ""} key={level}>
+                        <input
+                          checked={specialty.level === level}
+                          className="srOnly"
+                          name={`specialty-${index}`}
+                          onChange={() => setLevel(index, level)}
+                          type="radio"
+                          value={level}
+                        />
+                        <span>{level}</span>
+                      </label>
                     ))}
                   </div>
                 </article>
               ))}
             </div>
             <div className="selectionNote">
-              선택한 분야 <strong>{selectedSpecialties.length}개</strong> · 각 숫자를 눌러 숙련도를 조절하세요.
+              선택한 분야 <strong>{selectedSpecialties.length}개</strong> · 숫자를 선택하거나 미선택으로 해제할 수 있어요.
             </div>
             <div className="ctaRow">
               {ob2Invalid ? <span>전문 분야를 1개 이상 선택해 주세요.</span> : null}
@@ -428,8 +533,9 @@ export default function App() {
 
       case "ob3":
         return (
-          <section className="flowCard slim">
+          <section className="flowSurface slim">
             <ProgressSteps active={3} />
+            <div className="flowMilestone" role="status">전문 분야 {selectedSpecialties.length}개 선택 완료</div>
             <p className="kicker">온보딩 3 / 3</p>
             <h1>성과 데이터 <span>선택</span></h1>
             <p className="lead">입력한 성과는 나중에 센터와 조건을 협상할 때 근거가 돼요.</p>
@@ -461,10 +567,21 @@ export default function App() {
               성과 데이터는 지금 비워 두고 나중에 채워도 괜찮아요. 자기신고 값으로 저장됩니다.
             </div>
             <div className="ctaRow">
-              <button className="secondaryButton" onClick={() => go("mypage", () => setVerified(false))} type="button">
+              <button
+                className="secondaryButton"
+                onClick={() => go("mypage", () => {
+                  setOnboardingCompleted(true);
+                  setVerified(false);
+                })}
+                type="button"
+              >
                 나중에 하기
               </button>
-              <button className="primaryButton" onClick={() => go("caseIntro")} type="button">
+              <button
+                className="primaryButton"
+                onClick={() => go("caseIntro", () => setOnboardingCompleted(true))}
+                type="button"
+              >
                 케이스 테스트 바로 응시하기
               </button>
             </div>
@@ -473,10 +590,10 @@ export default function App() {
 
       case "caseIntro":
         return (
-          <section className="flowCard compact">
+          <section className="flowSurface compact">
             <p className="kicker">케이스 테스트</p>
             <h1>실무 역량을 인증받아요</h1>
-            <p className="lead">실제 회원 케이스 1개에 서술형으로 답하면 AI가 채점해 인증 여부를 판단해요.</p>
+            <p className="lead">실제 회원 케이스 1개에 서술형으로 답하면 현재 예시 채점 기준으로 인증 결과를 확인할 수 있어요.</p>
             <div className="metricGrid">
               <div className="metricCard">
                 <span>소요시간</span>
@@ -494,7 +611,7 @@ export default function App() {
             <div className="rubricSection">
               <span>채점 영역</span>
               <div className="rubricGrid">
-                {scoreRows.pass.map((row) => (
+                {demoPassResult.scoreByCriteria.map((row) => (
                   <strong key={row.name}>{row.name}</strong>
                 ))}
               </div>
@@ -503,7 +620,14 @@ export default function App() {
               임시저장은 지원하지 않아요. 시작하면 도중에 나가거나 새로고침할 경우 작성 내용이 사라질 수 있어요.
             </div>
             <div className="ctaRow">
-              <button className="secondaryButton" onClick={() => go("mypage", () => setVerified(false))} type="button">
+              <button
+                className="secondaryButton"
+                onClick={() => go("mypage", () => {
+                  setOnboardingCompleted(true);
+                  setVerified(false);
+                })}
+                type="button"
+              >
                 나중에 하기
               </button>
               <button className="primaryButton" onClick={startTest} type="button">
@@ -515,72 +639,152 @@ export default function App() {
 
       case "caseSession":
         return (
-          <section className="flowCard wide">
-            <div className={seconds <= 60 ? "timerBox low" : "timerBox"}>
+          <section className="flowSurface wide caseSessionSurface">
+            <div
+              aria-label={`남은 시간 ${formatTime(seconds)}`}
+              className={seconds <= 60 ? "timerBox low" : "timerBox"}
+              role="timer"
+            >
               <span>남은 시간</span>
               <strong>{formatTime(seconds)}</strong>
             </div>
+            {seconds === 60 ? <span className="srOnly" role="alert">응시 시간이 1분 남았습니다.</span> : null}
+            {testExpired ? (
+              <div className="callout danger" role="alert">
+                <strong>응시 시간이 종료됐어요</strong>
+                <p>현재 답변은 제출할 수 없습니다. 새 응시를 시작하면 작성 내용이 초기화됩니다.</p>
+              </div>
+            ) : null}
             <div className="caseGrid">
-              <aside className="memberCase">
-                <p className="kicker">회원 케이스</p>
-                <h1>무릎 통증이 있는 회원</h1>
-                <dl>
+              <aside className={caseDetailsOpen ? "memberCase open" : "memberCase"}>
+                <div className="memberCaseHeader">
                   <div>
-                    <dt>회원</dt>
-                    <dd>45세 여성 · 주 2회 PT 희망</dd>
+                    <p className="kicker">회원 케이스</p>
+                    <h1>무릎 통증이 있는 회원</h1>
                   </div>
-                  <div>
-                    <dt>주호소</dt>
-                    <dd>계단을 오르내릴 때 무릎 앞쪽 통증</dd>
-                  </div>
-                  <div>
-                    <dt>목표</dt>
-                    <dd>통증 없이 하체 근력 강화</dd>
-                  </div>
-                  <div>
-                    <dt>주의</dt>
-                    <dd>최근 병원 진단 여부는 확인되지 않음</dd>
-                  </div>
-                </dl>
+                  <button
+                    aria-controls="member-case-details"
+                    aria-expanded={caseDetailsOpen}
+                    className="caseToggle"
+                    onClick={() => setCaseDetailsOpen((current) => !current)}
+                    type="button"
+                  >
+                    {caseDetailsOpen ? "정보 접기" : "정보 펼치기"}
+                  </button>
+                </div>
+                <div className="caseDetails" id="member-case-details">
+                  <dl>
+                    <div>
+                      <dt>회원</dt>
+                      <dd>45세 여성 · 주 2회 PT 희망</dd>
+                    </div>
+                    <div>
+                      <dt>주호소</dt>
+                      <dd>계단을 오르내릴 때 무릎 앞쪽 통증</dd>
+                    </div>
+                    <div>
+                      <dt>목표</dt>
+                      <dd>통증 없이 하체 근력 강화</dd>
+                    </div>
+                    <div>
+                      <dt>주의</dt>
+                      <dd>최근 병원 진단 여부는 확인되지 않음</dd>
+                    </div>
+                  </dl>
+                </div>
               </aside>
               <div className="answerStack">
                 <label className="field">
                   <span>Q1. 이 회원에게 추가로 확인할 사항은?</span>
-                  <textarea value={answer1} onChange={(event) => setAnswer1(fieldValue(event))} />
+                  <textarea
+                    aria-describedby="assessment-help"
+                    aria-invalid={Boolean(answerValidation.assessmentError)}
+                    disabled={testExpired}
+                    value={answer1}
+                    onChange={(event) => setAnswer1(fieldValue(event))}
+                  />
+                  <em
+                    className={answerValidation.assessmentError ? "fieldMeta error" : "fieldMeta valid"}
+                    id="assessment-help"
+                  >
+                    {answerValidation.assessmentError ?? "제출 가능한 분량입니다."} · {answer1.trim().length}자
+                  </em>
                 </label>
                 <label className="field">
                   <span>Q2. 4주 운동 처방 계획을 제시하세요</span>
-                  <textarea value={answer2} onChange={(event) => setAnswer2(fieldValue(event))} />
+                  <textarea
+                    aria-describedby="prescription-help"
+                    aria-invalid={Boolean(answerValidation.prescriptionError)}
+                    disabled={testExpired}
+                    value={answer2}
+                    onChange={(event) => setAnswer2(fieldValue(event))}
+                  />
+                  <em
+                    className={answerValidation.prescriptionError ? "fieldMeta error" : "fieldMeta valid"}
+                    id="prescription-help"
+                  >
+                    {answerValidation.prescriptionError ?? "제출 가능한 분량입니다."} · {answer2.trim().length}자
+                  </em>
                 </label>
               </div>
             </div>
-            <div className="ctaRow">
-              <button className="primaryButton" onClick={() => setModal("submit")} type="button">
-                제출하기
-              </button>
+            <div className="ctaRow caseSubmitBar">
+              {testExpired ? (
+                <button className="primaryButton" onClick={restartTest} type="button">
+                  테스트 다시 시작하기
+                </button>
+              ) : (
+                <>
+                  {!answerValidation.isValid ? <span>두 답변의 최소 분량을 확인해 주세요.</span> : null}
+                  <button
+                    className="primaryButton"
+                    disabled={!answerValidation.isValid}
+                    onClick={() => setModal("submit")}
+                    type="button"
+                  >
+                    답변 제출하기
+                  </button>
+                </>
+              )}
             </div>
           </section>
         );
 
       case "result":
         return (
-          <section className="flowCard compact">
-            <p className="kicker">채점 결과</p>
-            <h1>AI 채점이 완료됐어요</h1>
+          <section className="flowSurface compact">
+            <p className="kicker">프로토타입 채점</p>
+            <h1>예시 채점 결과</h1>
+            <p className="lead">실제 AI가 연결되기 전 사용하는 예시 결과예요. 입력 내용에 포함된 평가·안전·처방 근거를 기준으로 계산합니다.</p>
             <div className="resultGrid">
-              <div className={`scoreHero ${resultTone}`}>
-                <span>{resultTone === "pass" ? "인증 통과" : "인증 미달"}</span>
-                <strong>{score}</strong>
-                <p>{resultTone === "pass" ? "인증 기준 80점을 넘었어요" : "인증 기준 80점에 4점 부족해요"}</p>
+              <div className={`scoreHero ${caseResult.tone}`}>
+                <span>{caseResult.tone === "pass" ? "인증 통과" : "인증 미달"}</span>
+                <strong>{caseResult.overallScore}</strong>
+                <p>
+                  {caseResult.tone === "pass"
+                    ? "인증 기준 80점을 넘었어요"
+                    : `인증 기준 80점에 ${80 - caseResult.overallScore}점 부족해요`}
+                </p>
               </div>
               <div className="criteriaList">
-                {scoreRows[resultTone].map((row) => (
+                {caseResult.scoreByCriteria.map((row) => (
                   <div className="criteriaItem" key={row.name}>
                     <div>
                       <span>{row.name}</span>
+                      <span className={row.value >= 80 ? "criterionStatus pass" : "criterionStatus fail"}>
+                        {row.value >= 80 ? "기준 통과" : "보완 필요"}
+                      </span>
                       <strong>{row.value}</strong>
                     </div>
-                    <span className="progressTrack">
+                    <span
+                      aria-label={`${row.name} ${row.value}점`}
+                      aria-valuemax={100}
+                      aria-valuemin={0}
+                      aria-valuenow={row.value}
+                      className="progressTrack"
+                      role="progressbar"
+                    >
+                      <i aria-hidden="true" className="thresholdMark" />
                       <span style={{ width: `${row.value}%` }} />
                     </span>
                   </div>
@@ -588,15 +792,15 @@ export default function App() {
               </div>
             </div>
             <div className="feedbackBox">
-              <strong>{resultTone === "pass" ? "AI 피드백 요약" : "보완 피드백"}</strong>
-              <p>
-                {resultTone === "pass"
-                  ? "안전 우선 접근과 점진적 하체 강화 계획이 명확합니다. 첫 상담에서 회원의 불안을 낮추는 설명을 조금 더 구체화하면 좋습니다."
-                  : "핵심 판단 방향은 맞지만 근거 설명이 부족합니다. 통증 원인 가설과 운동 강도 조절 기준을 더 구체적으로 제시하면 점수가 올라갑니다."}
-              </p>
+              <strong>{caseResult.tone === "pass" ? "예시 피드백 요약" : "보완 피드백"}</strong>
+              <p>{caseResult.feedbackSummary}</p>
+              <div className="resultInsights">
+                <span><b>강점</b>{caseResult.strengths.length > 0 ? caseResult.strengths.join(" · ") : "추가 확인 필요"}</span>
+                <span><b>보완</b>{caseResult.improvements.length > 0 ? caseResult.improvements.join(" · ") : "현재 기준 충족"}</span>
+              </div>
             </div>
             <div className="ctaRow">
-              {resultTone === "pass" ? (
+              {caseResult.tone === "pass" ? (
                 <button className="primaryButton" onClick={() => go("certified", () => setVerified(true))} type="button">
                   인증 완료 화면으로 이동
                 </button>
@@ -617,14 +821,19 @@ export default function App() {
 
       case "certified":
         return (
-          <section className="flowCard slim centerCard">
+          <section className="flowSurface slim centerCard">
             <div className="successMark">PASS</div>
             <p className="kicker success">인증 완료</p>
             <h1>검증된 트레이너가 되었어요</h1>
             <p className="lead">인증 뱃지와 점수가 프로필에 표시되고, 센터 대표에게 더 잘 노출돼요.</p>
             <div className="certScore">
               <span>케이스 테스트 점수</span>
-              <strong>82</strong>
+              <strong>{caseResult.overallScore}</strong>
+            </div>
+            <div className="trustSummary" aria-label="인증 근거">
+              <span><b>통과 기준</b>80점 이상</span>
+              <span><b>검증 강점</b>{caseResult.strengths.join(" · ")}</span>
+              <span><b>자격 정보</b>{candidateProfile.certifications || "등록된 자격 정보 없음"}</span>
             </div>
             <div className="tagGroup" aria-label="주요 전문 분야">
               {selectedSpecialties.slice(0, 3).map((specialty) => (
@@ -635,7 +844,7 @@ export default function App() {
               <button className="secondaryButton" onClick={() => go("mypage", () => setVerified(true))} type="button">
                 내 프로필로 이동
               </button>
-              <button className="primaryButton" onClick={() => go("offers", () => setOffers(resetOffers()))} type="button">
+              <button className="primaryButton" onClick={() => go("offers")} type="button">
                 채용 제안 확인하기
               </button>
             </div>
@@ -644,30 +853,56 @@ export default function App() {
 
       case "mypage":
         return (
-          <section className="flowCard compact">
+          <section className="flowSurface compact">
             <div className="profileHeader">
               <div className="avatar">{name ? name.charAt(0) : "T"}</div>
               <div>
-                <strong>{name || "트레이너"}</strong>
-                <span>{region || "활동 지역"} · {career || "경력"}</span>
+                <strong>{candidateProfile.name || "트레이너"}</strong>
+                <span>{candidateProfile.activeRegion || "활동 지역"} · {candidateProfile.careerYears || "경력"}</span>
               </div>
-              <StatusBadge status={verified ? "verified" : "unverified"} />
+              <div className="profileHeaderActions">
+                <StatusBadge status={verified ? "verified" : "unverified"} />
+                <button className="compactButton" onClick={() => go("ob1")} type="button">
+                  프로필 수정
+                </button>
+              </div>
             </div>
 
             {verified ? (
               <>
+                <div className="sectionHeading">
+                  <div>
+                    <span>성과 데이터</span>
+                    <strong>트레이너 직접 입력</strong>
+                  </div>
+                  <small>자기신고 정보</small>
+                </div>
                 <div className="metricGrid">
                   <div className="metricCard">
-                    <span>종합 점수</span>
-                    <strong>82점</strong>
+                    <span>누적 지도 회원</span>
+                    <strong>{members ? `${members}명` : "미입력"}</strong>
                   </div>
                   <div className="metricCard">
-                    <span>받은 제안</span>
-                    <strong>{offers.length}건</strong>
+                    <span>평균 재등록률</span>
+                    <strong>{reReg ? `${reReg}%` : "미입력"}</strong>
                   </div>
                   <div className="metricCard">
-                    <span>완성도</span>
-                    <strong>92%</strong>
+                    <span>평균 PT 기간</span>
+                    <strong>{ptDur ? `${ptDur}개월` : "미입력"}</strong>
+                  </div>
+                </div>
+                <div className="profileEvidence">
+                  <div>
+                    <span>한 줄 소개</span>
+                    <strong>{candidateProfile.introduction || "소개를 입력해 주세요."}</strong>
+                  </div>
+                  <div>
+                    <span>자격 정보</span>
+                    <strong>{candidateProfile.certifications || "등록된 자격 정보 없음"}</strong>
+                  </div>
+                  <div>
+                    <span>검증 강점</span>
+                    <strong>{caseResult.strengths.join(" · ") || "추가 확인 필요"}</strong>
                   </div>
                 </div>
                 <div className="tagBlock">
@@ -680,7 +915,7 @@ export default function App() {
                 </div>
                 <div className="historyCard">
                   <strong>케이스 테스트 이력</strong>
-                  <p>2026.07.06 제출 · 채점 완료 · PASS 82점</p>
+                  <p>2026.07.10 제출 · 채점 완료 · PASS {caseResult.overallScore}점</p>
                 </div>
                 <div className="ctaRow">
                   <button className="primaryButton" onClick={() => go("offers")} type="button">
@@ -697,7 +932,7 @@ export default function App() {
                   </div>
                   <div className="emptyState">
                     <strong>아직 받은 제안이 없습니다</strong>
-                    <p>인증과 프로필 완성도가 높을수록 센터 대표에게 더 잘 노출돼요.</p>
+                    <p>인증을 완료하고 경력·성과 정보를 입력하면 센터 대표가 역량을 더 쉽게 확인할 수 있어요.</p>
                   </div>
                 </div>
                 <div className="ctaRow">
@@ -718,27 +953,36 @@ export default function App() {
             {offers.length === 0 ? (
               <div className="emptyState large">
                 <strong>아직 받은 제안이 없습니다</strong>
-                <p>인증과 프로필 완성도가 높을수록 센터 대표에게 더 잘 노출돼요.</p>
+                <p>인증을 완료하고 경력·성과 정보를 입력하면 센터 대표가 역량을 더 쉽게 확인할 수 있어요.</p>
               </div>
             ) : (
               <div className="offerGrid">
                 {offers.map((offer, index) => (
-                  <button
-                    className="offerCard"
-                    key={`${offer.center}-${offer.date}`}
-                    onClick={() => go("offerDetail", () => setSelectedOffer(index))}
-                    type="button"
-                  >
+                  <article className="offerCard" key={offer.id}>
                     <div>
-                      <strong>{offer.center}</strong>
+                      <h2>{offer.center}</h2>
                       <StatusBadge status={offer.status} />
                     </div>
-                    <span>{offer.type} · {offer.salary}</span>
-                    <p>
-                      <small>제안일 {offer.date}</small>
-                      <b>자세히 보기</b>
-                    </p>
-                  </button>
+                    <span>{offer.employmentType} · {offer.salary}</span>
+                    <dl className="offerFacts">
+                      <div><dt>근무</dt><dd>{offer.workSchedule}</dd></div>
+                      <div><dt>시작</dt><dd>{offer.startDate}</dd></div>
+                    </dl>
+                    <footer>
+                      <small>제안일 {offer.offeredAt}</small>
+                      <a
+                        aria-label={`${offer.center} 제안 상세 보기`}
+                        className="offerDetailButton"
+                        href="#offer-detail"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          go("offerDetail", () => setSelectedOffer(index));
+                        }}
+                      >
+                        제안 상세 보기
+                      </a>
+                    </footer>
+                  </article>
                 ))}
               </div>
             )}
@@ -751,15 +995,15 @@ export default function App() {
             <div className="flowCard detailCard">
               <StatusBadge status={activeOffer.status} />
               <h1>{activeOffer.center}</h1>
-              <p className="lead">제안일 {activeOffer.date}</p>
+              <p className="lead">제안일 {activeOffer.offeredAt}</p>
               <dl className="detailList">
                 <div>
                   <dt>고용 형태</dt>
-                  <dd>{activeOffer.type}</dd>
+                  <dd>{activeOffer.employmentType}</dd>
                 </div>
                 <div>
                   <dt>근무 조건</dt>
-                  <dd>{activeOffer.extra}</dd>
+                  <dd>{activeOffer.workSchedule}</dd>
                 </div>
                 <div>
                   <dt>근무 시작일</dt>
@@ -776,7 +1020,7 @@ export default function App() {
               <strong>{activeOffer.salary}</strong>
               {activeOffer.status === "pending" ? (
                 <div>
-                  <button className="primaryButton" onClick={acceptOffer} type="button">
+                  <button className="primaryButton" onClick={() => setModal("accept")} type="button">
                     수락하기
                   </button>
                   <button className="dangerButton" onClick={() => setModal("decline")} type="button">
@@ -792,7 +1036,7 @@ export default function App() {
 
       case "confirmed":
         return (
-          <section className="flowCard compact centerTop">
+          <section className="flowSurface compact centerTop">
             <div className="successMark">확정</div>
             <p className="kicker success">채용 확정</p>
             <h1>제안 수락이 완료됐어요</h1>
@@ -805,7 +1049,7 @@ export default function App() {
                 </div>
                 <div>
                   <dt>고용 형태</dt>
-                  <dd>{activeOffer.type}</dd>
+                  <dd>{activeOffer.employmentType}</dd>
                 </div>
                 <div>
                   <dt>근무 시작일</dt>
@@ -821,7 +1065,7 @@ export default function App() {
             </div>
             <div className="ctaRow">
               <button className="secondaryButton" onClick={() => go("mypage", () => setVerified(true))} type="button">
-                홈으로 돌아가기
+                내 프로필로 돌아가기
               </button>
               <a className="primaryLinkButton" href={`mailto:${activeOffer.email}`}>
                 담당자 이메일 확인
@@ -839,31 +1083,62 @@ export default function App() {
     <main className="appShell">
       <header className="topBar">
         <div className="brandMark">
-          <span className="brandDot" />
+          <span aria-hidden="true" className="brandDot" />
           FitProof
         </div>
         <span className="topTitle">트레이너 · {screenTitles[screen]}</span>
         <div className="topActions">
           {stack.length > 0 ? (
-            <button className="ghostButton" onClick={back} type="button">
+            <button aria-label="이전 화면으로" className="ghostButton" onClick={back} type="button">
               뒤로
             </button>
           ) : null}
-          <button className="ghostButton muted" onClick={() => setMenuOpen(true)} type="button">
-            화면 목록
-          </button>
+          {reviewMode ? (
+            <button className="ghostButton muted" onClick={() => setMenuOpen(true)} type="button">
+              리뷰 화면
+            </button>
+          ) : null}
         </div>
       </header>
 
+      {showCandidateNav ? (
+        <nav aria-label="트레이너 주요 메뉴" className="candidateNav">
+          <button
+            aria-current={profileTabActive ? "page" : undefined}
+            className={profileTabActive ? "active" : ""}
+            onClick={() => navigatePrimary("mypage")}
+            type="button"
+          >
+            내 프로필
+          </button>
+          <button
+            aria-current={offersTabActive ? "page" : undefined}
+            className={offersTabActive ? "active" : ""}
+            onClick={() => navigatePrimary("offers")}
+            type="button"
+          >
+            받은 제안
+          </button>
+        </nav>
+      ) : null}
+
+      <span aria-live="polite" className="srOnly">{screenTitles[screen]} 화면</span>
       <div className="mainSurface">{renderScreen()}</div>
 
-      {menuOpen ? (
+      {reviewMode && menuOpen ? (
         <div className="drawerBackdrop" onClick={() => setMenuOpen(false)} role="presentation">
-          <aside className="drawerPanel" onClick={(event) => event.stopPropagation()}>
+          <aside
+            aria-label="리뷰 화면 이동"
+            aria-modal="true"
+            className="drawerPanel"
+            onClick={(event) => event.stopPropagation()}
+            ref={drawerRef}
+            role="dialog"
+          >
             <div className="drawerHeader">
               <strong>화면 이동 · 리뷰</strong>
               <button onClick={() => setMenuOpen(false)} type="button" aria-label="화면 목록 닫기">
-                닫기
+                ×
               </button>
             </div>
             <p>실제 플로우는 화면 안 버튼으로 진행돼요. 아래 목록은 상태를 바로 확인하는 리뷰용입니다.</p>
@@ -886,30 +1161,50 @@ export default function App() {
             aria-modal="true"
             className="modalPanel"
             onClick={(event) => event.stopPropagation()}
+            ref={modalRef}
             role="dialog"
           >
             {modal === "submit" ? (
               <>
                 <p>제출 확인</p>
                 <h2 id="flow-modal-title">답변을 제출할까요?</h2>
-                <span>제출 후에는 답변을 수정할 수 없습니다. 작성한 답변과 케이스 테스트 결과가 채점에 사용됩니다.</span>
+                <span>
+                  Q1 {answer1.trim().length}자, Q2 {answer2.trim().length}자를 제출합니다. 제출 후에는 답변을 수정할 수 없어요.
+                </span>
                 <div className="modalActions">
                   <button className="secondaryButton" onClick={() => setModal(null)} type="button">
                     다시 확인하기
                   </button>
                   <button
                     className="primaryButton"
-                    onClick={() => {
-                      setModal(null);
-                      go("result", () => setResultTone("pass"));
-                    }}
+                    onClick={submitCaseTest}
                     type="button"
                   >
                     제출하고 채점 보기
                   </button>
                 </div>
               </>
-            ) : (
+            ) : modal === "accept" ? (
+              <>
+                <p>제안 수락 확인</p>
+                <h2 id="flow-modal-title">최종 조건을 확인해 주세요</h2>
+                <dl className="modalSummary">
+                  <div><dt>센터</dt><dd>{activeOffer.center}</dd></div>
+                  <div><dt>고용 형태</dt><dd>{activeOffer.employmentType}</dd></div>
+                  <div><dt>급여</dt><dd>{activeOffer.salary}</dd></div>
+                  <div><dt>시작일</dt><dd>{activeOffer.startDate}</dd></div>
+                </dl>
+                <span>수락하면 채용 확정 상태로 변경되고 센터 담당자 연락처가 공개됩니다.</span>
+                <div className="modalActions">
+                  <button className="secondaryButton" onClick={() => setModal(null)} type="button">
+                    계속 검토하기
+                  </button>
+                  <button className="primaryButton" onClick={acceptOffer} type="button">
+                    제안 수락 확정
+                  </button>
+                </div>
+              </>
+            ) : modal === "decline" ? (
               <>
                 <p>제안 거절 확인</p>
                 <h2 id="flow-modal-title">이 제안을 거절할까요?</h2>
@@ -920,6 +1215,24 @@ export default function App() {
                   </button>
                   <button className="dangerButton" onClick={declineOffer} type="button">
                     거절 확정
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>응시 종료 확인</p>
+                <h2 id="flow-modal-title">테스트를 나갈까요?</h2>
+                <span>현재 응시는 종료되며 작성한 답변은 저장되지 않습니다.</span>
+                <div className="modalActions">
+                  <button className="secondaryButton" onClick={() => setModal(null)} type="button">
+                    계속 작성하기
+                  </button>
+                  <button
+                    className="dangerButton"
+                    onClick={leaveTest}
+                    type="button"
+                  >
+                    나가기
                   </button>
                 </div>
               </>
