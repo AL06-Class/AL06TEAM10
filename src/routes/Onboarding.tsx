@@ -183,15 +183,6 @@ export default function Onboarding() {
 
           <div className="mt-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1 text-sm text-[#52606d]">
-              원하는 전문 분야
-              <ChipGroup
-                options={SPECIALTY_OPTIONS}
-                selected={form.desiredSpecialties}
-                onToggle={toggleSpecialty}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
               경력
               <Segmented
                 options={CAREER_REQUIREMENT_OPTIONS}
@@ -224,6 +215,15 @@ export default function Onboarding() {
                 onChange={(value) =>
                   setForm((prev) => ({ ...prev, employmentType: value as EmploymentTypeRequirement }))
                 }
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+              원하는 전문 분야
+              <ChipGroup
+                options={SPECIALTY_OPTIONS}
+                selected={form.desiredSpecialties}
+                onToggle={toggleSpecialty}
               />
             </div>
           </div>

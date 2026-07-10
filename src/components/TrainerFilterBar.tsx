@@ -39,11 +39,6 @@ export default function TrainerFilterBar({
 }: TrainerFilterBarProps) {
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-[#d9dee7] bg-white p-4">
-      <div>
-        <p className="mb-2 text-sm text-[#52606d]">전문 분야</p>
-        <ChipGroup options={SPECIALTY_OPTIONS} selected={specialties} onToggle={onToggleSpecialty} />
-      </div>
-
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm text-[#52606d]">
           지역
@@ -101,6 +96,11 @@ export default function TrainerFilterBar({
         >
           필터 초기화
         </button>
+      </div>
+
+      <div>
+        <p className="mb-2 text-sm text-[#52606d]">전문 분야</p>
+        <ChipGroup options={SPECIALTY_OPTIONS} selected={specialties} onToggle={onToggleSpecialty} />
       </div>
     </div>
   );

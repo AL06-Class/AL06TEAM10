@@ -9,7 +9,6 @@ import {
   type CertFilter,
   type EmploymentFilter,
 } from "./trainerFilters";
-import { loadOnboardingConditions } from "./onboardingConditions";
 
 function parseSpecialties(raw: string): string[] {
   return raw ? raw.split(",").filter(Boolean) : [];
@@ -45,13 +44,15 @@ export default function TrainerListPage() {
 
   const resetFilters = () => setSearchParams(new URLSearchParams());
 
-  // 추천 집합 = 온보딩 채용조건(localStorage) 부합 상위 4명 — 목록·상세가 같은 조건을 읽어
-  // 판정을 일치시킨다(온보딩 미작성이면 getRecommendedTrainers가 전체 기준으로 fallback).
-  const onboardingConditions = loadOnboardingConditions();
-  const recommendedTrainers = getRecommendedTrainers(trainers, onboardingConditions);
+  // 추천 집합 = 현재 필터 조건(전문분야·지역·경력·자격증·고용형태)에 부합하는 상위 4명 —
+  // 필터를 바꾸면 추천도 즉시 갱신된다. 필터가 전부 비어 있으면(쿼리 없음) 전체 active
+  // 기준 상위 4로 fallback(getRecommendedTrainers 내부 EMPTY_CONDITIONS 동작과 동일).
+  // 온보딩 제출 시 조건이 쿼리스트링 초기값이 되므로 "온보딩 조건 기반 추천"은 그대로 성립.
+  const currentFilters = { specialties, region, career, cert, employment };
+  const recommendedTrainers = getRecommendedTrainers(trainers, currentFilters);
   const recommendedIds = new Set(recommendedTrainers.map((trainer) => trainer.id));
 
-  const filteredTrainers = filterTrainers(trainers, { specialties, region, career, cert, employment });
+  const filteredTrainers = filterTrainers(trainers, currentFilters);
   const remainingTrainers = filteredTrainers.filter((trainer) => !recommendedIds.has(trainer.id));
 
   return (
