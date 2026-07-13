@@ -25,7 +25,7 @@ export default function Home() {
         <h1 className="mb-4 text-[28px] leading-tight">{titleText}</h1>
         <p className="mb-6 text-base leading-[1.6] text-[#52606d]">{descriptionText}</p>
         <p className="mb-3 text-sm text-[#52606d]">
-          현재 역할: recruiter (센터 대표) — 다른 역할 분기는 후속 작업
+          현재 역할: recruiter (센터 대표)
         </p>
         <nav className="flex gap-3">
           <Link to="/onboarding" className="text-[#0066cc]">
@@ -33,6 +33,9 @@ export default function Home() {
           </Link>
           <Link to="/trainers" className="text-[#0066cc]">
             트레이너 목록으로 이동
+          </Link>
+          <Link to="/trainer" className="text-[#0066cc]">
+            트레이너 검증 화면으로 이동
           </Link>
         </nav>
       </section>
