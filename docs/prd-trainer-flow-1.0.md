@@ -142,8 +142,9 @@
 ### Main Collections
 
 - `candidateProfiles`
-- `caseTestSessions`
-- `hiringOffers`
+- `trainers`
+- `caseTestResults`
+- `hireProposals`
 
 ### Key Status Values
 
