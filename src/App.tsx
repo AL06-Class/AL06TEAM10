@@ -5,6 +5,8 @@ import Trainers from "./routes/Trainers";
 import TrainerDetail from "./routes/TrainerDetail";
 import GradingReport from "./routes/GradingReport";
 import TrainerFlow from "./routes/TrainerFlow";
+import RoleSelect from "./routes/RoleSelect";
+import Login from "./routes/Login";
 
 export default function App() {
   const reviewMode = new URLSearchParams(window.location.search).get("review") === "1";
@@ -12,6 +14,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={reviewMode ? <Navigate replace to="/trainer?review=1" /> : <Home />} />
+      <Route path="/role" element={<RoleSelect />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/trainers" element={<Trainers />} />
       <Route path="/trainers/:trainerId" element={<TrainerDetail />} />
