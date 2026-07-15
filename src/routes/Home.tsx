@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import { login } from "../auth/session";
+import ProductHeader from "../components/ProductHeader";
 
 const FEATURE_CARDS = [
   {
@@ -32,67 +32,50 @@ export default function Home() {
   };
 
   const handleTrainerStart = () => {
-    login("trainer");
+    login("candidate");
     navigate("/trainer");
   };
 
   return (
-    <main className="min-h-screen bg-surface">
-      <Header />
+    <div className="appShell">
+      <ProductHeader title="검증된 트레이너 채용" contextLabel="FitProof" />
+      <main className="mainSurface landingMain">
+        <section className="landingHero">
+          <p className="kicker">트레이너 검증·채용 플랫폼</p>
+          <h1>이력서 말고, 실력으로 뽑으세요.</h1>
+          <p className="lead">검증된 트레이너를 케이스 테스트 결과로 확인하고 채용하세요.</p>
+          <div className="landingActions">
+            <button className="primaryButton" onClick={handleRecruiterStart} type="button">
+              센터 대표로 시작하기
+            </button>
+            <button className="secondaryButton" onClick={handleTrainerStart} type="button">
+              트레이너로 시작하기
+            </button>
+          </div>
+        </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-20 text-center">
-        <h1 className="mb-4 text-3xl font-bold leading-tight text-ink sm:text-4xl">
-          이력서 말고, 실력으로 뽑으세요.
-        </h1>
-        <p className="mb-10 text-base text-[#52606d] sm:text-lg">
-          검증된 트레이너를 케이스 테스트 결과로 확인하고 채용하세요
-        </p>
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <button
-            type="button"
-            onClick={handleRecruiterStart}
-            className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white! sm:text-base"
-          >
-            센터 대표로 시작하기
-          </button>
-          <button
-            type="button"
-            onClick={handleTrainerStart}
-            className="rounded border border-primary px-6 py-3 text-sm font-semibold text-primary sm:text-base"
-          >
-            트레이너로 시작하기
-          </button>
-        </div>
-      </section>
+        <section className="landingSection" aria-labelledby="landing-features-title">
+          <h2 id="landing-features-title" className="sectionTitle">FitProof가 제공하는 근거</h2>
+          <div className="landingFeatureGrid">
+            {FEATURE_CARDS.map((card, index) => (
+              <article className="landingFeature" key={card.title}>
+                <span className="landingFeatureNumber">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      <section className="mx-auto max-w-5xl px-6 pb-16">
-        <h2 className="mb-6 text-center text-xl font-bold text-ink">어떻게 다른가요?</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {FEATURE_CARDS.map((card, index) => (
-            <div
-              key={card.title}
-              className="rounded-lg border border-[#d9dee7] bg-white p-6 text-center shadow-[0_10px_30px_rgba(23,32,42,0.06)]"
-            >
-              <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {index + 1}
-              </span>
-              <h3 className="mb-2 text-base font-bold text-ink">{card.title}</h3>
-              <p className="text-sm text-[#52606d]">{card.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-5xl px-6 pb-20 text-center">
-        <div className="grid grid-cols-1 gap-6 rounded-lg border border-[#d9dee7] bg-white p-8 sm:grid-cols-3">
+        <section className="landingMetrics" aria-label="서비스 현황">
           {METRICS.map((metric) => (
             <div key={metric.label}>
-              <p className="mb-1 text-2xl font-bold text-primary">{metric.value}</p>
-              <p className="text-sm text-[#52606d]">{metric.label}</p>
+              <strong>{metric.value}</strong>
+              <span>{metric.label}</span>
             </div>
           ))}
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </div>
   );
 }

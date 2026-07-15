@@ -38,14 +38,14 @@ export default function TrainerFilterBar({
   onReset,
 }: TrainerFilterBarProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-[#d9dee7] bg-white p-4">
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 text-sm text-[#52606d]">
+    <div className="flowCard filterCard">
+      <div className="filterControls">
+        <label className="filterField">
           지역
           <select
             value={region}
             onChange={(event) => onRegionChange(event.target.value)}
-            className="rounded border border-[#d9dee7] px-3 py-2 text-sm text-ink"
+            className="recruiterInput"
           >
             <option value="">전체</option>
             {REGION_OPTIONS.map((option) => (
@@ -56,12 +56,12 @@ export default function TrainerFilterBar({
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-sm text-[#52606d]">
+        <label className="filterField">
           경력 구간
           <select
             value={career}
             onChange={(event) => onCareerChange(event.target.value as CareerBand)}
-            className="rounded border border-[#d9dee7] px-3 py-2 text-sm text-ink"
+            className="recruiterInput"
           >
             {CAREER_BAND_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -71,7 +71,7 @@ export default function TrainerFilterBar({
           </select>
         </label>
 
-        <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+        <div className="filterField">
           자격증
           <Segmented
             options={CERT_FILTER_OPTIONS}
@@ -80,7 +80,7 @@ export default function TrainerFilterBar({
           />
         </div>
 
-        <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+        <div className="filterField">
           고용 형태
           <Segmented
             options={EMPLOYMENT_FILTER_OPTIONS}
@@ -92,14 +92,14 @@ export default function TrainerFilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="ml-auto rounded border border-[#d9dee7] px-4 py-2 text-sm font-semibold text-[#52606d] hover:bg-surface"
+          className="secondaryButton filterReset"
         >
           필터 초기화
         </button>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm text-[#52606d]">전문 분야</p>
+      <div className="filterSpecialties">
+        <p>전문 분야</p>
         <ChipGroup options={SPECIALTY_OPTIONS} selected={specialties} onToggle={onToggleSpecialty} />
       </div>
     </div>

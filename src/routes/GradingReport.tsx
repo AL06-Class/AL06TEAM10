@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
+import ProductHeader from "../components/ProductHeader";
 
 export default function GradingReportPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -16,29 +17,34 @@ export default function GradingReportPage() {
 
   if (!trainer || !report) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="mb-4 text-sm">
-          <Link to={backLink} className="text-primary">
+      <div className="appShell">
+        <ProductHeader title="예시 채점 리포트" />
+        <main className="mainSurface recruiterMain recruiterNarrow">
+        <p className="pageLinkRow">
+          <Link to={backLink} className="backLink">
             ← 프로필로
           </Link>
         </p>
-        <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
-          <p className="text-sm text-[#52606d]">채점 리포트가 아직 없습니다.</p>
+        <div className="emptyState large">
+          <p>채점 리포트가 아직 없습니다.</p>
         </div>
-      </main>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <p className="mb-4 text-sm">
-        <Link to={backLink} className="text-primary">
+    <div className="appShell">
+      <ProductHeader title="예시 채점 리포트" />
+      <main className="mainSurface recruiterMain recruiterNarrow">
+      <p className="pageLinkRow">
+        <Link to={backLink} className="backLink">
           ← 프로필로
         </Link>
       </p>
 
       <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-        <h1 className="text-base font-bold text-ink">종합 점수</h1>
+        <h1 className="sectionTitle reportScoreTitle">예시 종합 점수</h1>
         <p className="mt-2 text-3xl font-bold text-primary">
           {report.overallScore} <span className="text-base font-normal text-[#52606d]">/ 100</span>
         </p>
@@ -87,7 +93,7 @@ export default function GradingReportPage() {
       </section>
 
       <section className="mt-6 rounded-lg border border-[#d9dee7] bg-white p-6">
-        <h2 className="text-base font-bold text-ink">AI 코멘트</h2>
+        <h2 className="text-base font-bold text-ink">예시 채점 코멘트</h2>
         <p className="mt-3 text-sm leading-[1.6] text-ink">👍 잘한 점: {report.strengthComment}</p>
         <p className="mt-2 text-sm leading-[1.6] text-ink">💡 보완할 점: {report.improvementComment}</p>
       </section>
@@ -95,6 +101,7 @@ export default function GradingReportPage() {
       <div className="mt-6">
         <HireProposalButton trainerId={trainer.id} />
       </div>
-    </main>
+      </main>
+    </div>
   );
 }

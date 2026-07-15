@@ -33,6 +33,7 @@ export const EMPLOYMENT_FILTER_OPTIONS: { value: EmploymentFilter; label: string
 ];
 
 export interface OnboardingConditions {
+  centerName?: string;
   specialties: string[];
   region: string;
   career: CareerBand;

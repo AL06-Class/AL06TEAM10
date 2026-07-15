@@ -35,6 +35,8 @@
    - 모든 화면이 따라야 할 최소 디자인 기준을 정합니다.
 5. `docs/firebase-guide.md`
    - Firebase 사용 범위, 환경변수, 배포 기준을 정합니다.
+6. `docs/trainer-ia-db.md`
+   - 트레이너 검증·채용 역할, IA, DB 관계를 시각화합니다.
 
 ## 문서 확인 기준
 

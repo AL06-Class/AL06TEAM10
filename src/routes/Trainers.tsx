@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import TrainerCard from "../components/TrainerCard";
 import TrainerFilterBar from "../components/TrainerFilterBar";
-import Header from "../components/Header";
 import { trainers } from "../data/trainers";
 import {
   filterTrainers,
@@ -12,6 +11,7 @@ import {
   type EmploymentFilter,
 } from "./trainerFilters";
 import { saveConditionsToDraft } from "./onboardingConditions";
+import ProductHeader from "../components/ProductHeader";
 
 function parseSpecialties(raw: string): string[] {
   return raw ? raw.split(",").filter(Boolean) : [];
@@ -66,21 +66,24 @@ export default function TrainerListPage() {
   }, [specialtiesKey, region, career, cert, employment]);
 
   return (
-    <>
-      <Header title="트레이너 탐색" />
-      <main className="mx-auto max-w-5xl px-6 py-10">
-      <p className="mb-4 flex gap-4 text-sm">
-        <Link to="/" className="text-primary">
-          홈으로 돌아가기
-        </Link>
-        <Link to="/onboarding" className="text-primary">
-          채용 조건 수정
-        </Link>
-      </p>
-      <h1 className="mb-2 text-2xl font-bold text-ink">추천 트레이너 탐색</h1>
-      <p className="mb-6 text-sm text-[#52606d]">
-        센터에 맞는 추천 트레이너를 먼저 비교하고, 조건을 좁혀 그 외 후보도 살펴보세요.
-      </p>
+    <div className="appShell">
+      <ProductHeader title="트레이너 탐색" />
+      <main className="mainSurface recruiterMain recruiterWide">
+        <p className="pageLinkRow">
+          <Link to="/recruiter" className="backLink">
+            ← 홈으로 돌아가기
+          </Link>
+          <Link to="/onboarding" className="backLink">
+            조건 수정
+          </Link>
+        </p>
+        <div className="pageIntro">
+          <p className="kicker">채용 후보</p>
+          <h1>추천 트레이너 탐색</h1>
+          <p className="lead">
+            센터에 맞는 추천 트레이너를 먼저 비교하고, 조건을 좁혀 그 외 후보도 살펴보세요.
+          </p>
+        </div>
 
       <TrainerFilterBar
         specialties={specialties}
@@ -96,16 +99,16 @@ export default function TrainerListPage() {
         onReset={resetFilters}
       />
 
-      <section className="mt-8">
-        <h2 className="mb-4 text-lg font-bold text-ink">추천 {recommendedTrainers.length}명</h2>
+      <section className="recruiterSection listSection">
+        <h2 className="sectionTitle">추천 {recommendedTrainers.length}명</h2>
         {recommendedTrainers.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
-            <p className="text-sm text-[#52606d]">
+          <div className="emptyState large">
+            <p>
               조건에 맞는 추천 트레이너가 없습니다 — 조건을 완화해 보세요.
             </p>
             <Link
               to="/onboarding"
-              className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
+              className="primaryButton"
             >
               채용 조건 다시 설정하기
             </Link>
@@ -119,40 +122,40 @@ export default function TrainerListPage() {
         )}
       </section>
 
-      <section className="mt-8">
-        <h2 className="mb-4 text-lg font-bold text-ink">그 외 트레이너</h2>
+      <section className="recruiterSection listSection">
+        <h2 className="sectionTitle">그 외 트레이너</h2>
         {remainingTrainers.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
-            <p className="text-sm text-[#52606d]">조건에 맞는 트레이너가 없습니다.</p>
+          <div className="emptyState large">
+            <p>조건에 맞는 트레이너가 없습니다.</p>
             <button
               type="button"
               onClick={resetFilters}
-              className="mt-4 rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
+              className="primaryButton"
             >
               필터 초기화
             </button>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-[#d9dee7] bg-white">
+          <div className="trainerTable">
             <div
-              className={`grid ${LIST_GRID_COLS} gap-2 border-b border-[#d9dee7] bg-surface px-4 py-2 text-xs font-semibold text-[#52606d]`}
+              className={`trainerTableHeader ${LIST_GRID_COLS}`}
             >
               <span>이름</span>
               <span>전문 분야</span>
               <span>인증 트레이너</span>
               <span>경력</span>
             </div>
-            <ul className="divide-y divide-[#d9dee7]">
+            <ul className="trainerTableBody">
               {remainingTrainers.map((trainer) => (
                 <li key={trainer.id}>
                   <Link
                     to={`/trainers/${trainer.id}`}
-                    className={`grid ${LIST_GRID_COLS} items-center gap-2 px-4 py-3 text-sm hover:bg-surface`}
+                    className={`trainerTableRow ${LIST_GRID_COLS}`}
                   >
-                    <span className="truncate font-semibold text-ink">{trainer.name}</span>
-                    <span className="truncate text-[#52606d]">{trainer.specialties.join(", ")}</span>
-                    <span className="text-[#52606d]">{trainer.isCertified ? "인증" : "미인증"}</span>
-                    <span className="text-[#52606d]">{trainer.careerYears}년</span>
+                    <span className="truncate trainerTableName">{trainer.name}</span>
+                    <span className="truncate">{trainer.specialties.join(", ")}</span>
+                    <span>{trainer.isCertified ? "인증" : "미인증"}</span>
+                    <span>{trainer.careerYears}년</span>
                   </Link>
                 </li>
               ))}
@@ -161,6 +164,6 @@ export default function TrainerListPage() {
         )}
       </section>
       </main>
-    </>
+    </div>
   );
 }

@@ -25,6 +25,12 @@
 
 역할 이름을 바꾸거나 새 역할을 추가하려면 먼저 팀 논의가 필요합니다.
 
+트레이너 검증·채용 도메인에서는 센터 대표가 채용 조건 설정, 트레이너 검토,
+면접, 채용 제안까지 함께 수행할 수 있으므로 센터 대표를 `recruiter` 하나의
+역할로 사용합니다. `interviewer`는 별도의 사용자가 실제로 면접을 담당하는
+운영 구조가 생겼을 때만 사용하며, 역할을 나누기 위해 센터 대표에게 중복
+계정을 만들지 않습니다.
+
 ### 데이터 작성 기준
 
 - 필드명은 영어 `camelCase`를 사용합니다.
@@ -193,7 +199,7 @@
 - `recruiter`: 채용담당자
 - `interviewer`: 면접관
 
-역할 매핑 노트: 트레이너 검증 채용 도메인에서는 새 역할 값을 추가하지 않고 기존 값을 재해석해서 씁니다. 센터 대표(채용 주체)는 `recruiter`, 트레이너(검증 대상)는 `candidate`로 사용합니다. `interviewer`는 이 도메인에서 아직 쓰이지 않습니다.
+역할 매핑 노트: 트레이너 검증·채용 도메인에서는 새 역할 값을 추가하지 않고 기존 값을 재해석해서 씁니다. 센터 대표(채용 주체이자 기본 면접 담당자)는 `recruiter`, 트레이너(검증 대상)는 `candidate`로 사용합니다. 별도 면접 담당자가 생기는 경우에만 `interviewer`를 사용하며, 면접 데이터의 `interviewerId`는 실제 면접을 진행한 사용자를 가리킵니다.
 
 ### 상태값 초안
 
@@ -212,6 +218,18 @@
 - `graded`: 채점 완료
 - `unverified`: 미인증
 - `passed`: 통과
+
+### 트레이너 채용 제안 상태 계약
+
+`hireProposals.status`는 아래 네 값만 사용합니다.
+
+- `pending`: 트레이너 검토 중
+- `accepted`: 트레이너가 수락하여 채용 확정
+- `declined`: 트레이너가 거절
+- `cancelled`: 센터 대표가 취소
+
+기존 더미 데이터의 `confirmed`, `rejected`는 화면 로딩 시 각각 `accepted`,
+`declined`로 변환하며 신규 데이터에는 사용하지 않습니다.
 - `failed`: 미달
 - `accepted`: 수락됨
 - `active`: 활성 (트레이너 프로필 노출 중)
@@ -225,7 +243,7 @@
 
 ### users
 
-- `id`
+- `id` (Firebase Auth UID)
 - `name`
 - `role`
 - `title`
@@ -378,6 +396,8 @@
 
 관계 노트: 트레이너 1명이 여러 건의 케이스 테스트 항목 결과를 가질 수 있어 `trainers`에는 `caseTestResultId`처럼 단일 값을 참조하는 필드를 두지 않습니다. 대신 `evaluations`가 `applicationId`/`interviewId`를 참조하는 기존 패턴과 동일하게, 참조 키는 자식 컬렉션인 `caseTestResults` 쪽에 `trainerId`로 둡니다(1:N).
 
+인증 연결 노트: 트레이너 가입 계정과 프로필을 단순하게 연결하기 위해 MVP에서는 Firebase Auth UID를 `users.id`와 `trainers.id`에 동일하게 사용합니다. 따라서 `trainers`에 별도 `userId` 필드를 추가하지 않고 `trainers/{userId}` 경로로 프로필을 저장합니다.
+
 ### caseTestResults
 
 - `id`
@@ -421,6 +441,7 @@
 
 - 주요 컬렉션: 공통 이름 사전의 컬렉션 이름을 초안으로 사용
 - 역할 기준: `candidate`, `recruiter`, `interviewer`
+- 트레이너 검증·채용 역할 운영: 센터 대표는 `recruiter`로 채용과 면접을 함께 수행하며, 별도 면접 담당자가 생길 때만 `interviewer`를 사용
 - 필드명 규칙: 영어 `camelCase`
 - 날짜 저장 방식: 문자열 또는 Firebase Timestamp 중 하나로 통일
 - 상태값 기준: 자유 텍스트가 아니라 정해진 값만 사용
@@ -430,6 +451,7 @@
 - 트레이너 검증·채용 도메인 역할 매핑: 새 역할 값을 추가하지 않고, 센터 대표=`recruiter`, 트레이너=`candidate`로 기존 값을 재해석해서 사용
 - 트레이너 검증·채용 도메인 컬렉션: `trainers`, `caseTestResults`, `hireProposals`를 공통 이름 사전에 추가
 - `trainers`↔`caseTestResults` 관계: 1:N이므로 참조 키(`trainerId`)는 `caseTestResults`에 두고 `trainers`에는 역참조 필드를 두지 않음
+- 트레이너 계정↔프로필 연결: MVP에서는 `users.id`와 `trainers.id`에 Firebase Auth UID를 동일하게 사용하고 별도 `userId` 필드는 두지 않음
 
 ## 변경 이력
 
@@ -439,3 +461,5 @@
 - 2026-05-29: 일정 조율, 면접 질문 생성, 평가 과업에 필요한 공통 이름 보강
 - 2026-07-06: 트레이너 온보딩, 케이스 테스트, 인증 상태, 채용 제안 흐름에 필요한 공통 이름 추가
 - 2026-07-08: 트레이너 검증·채용 도메인 컬렉션(`trainers`/`caseTestResults`/`hireProposals`)과 역할 매핑 노트(센터 대표=`recruiter`, 트레이너=`candidate`) 추가
+- 2026-07-14: 센터 대표가 채용과 면접을 함께 수행하는 운영 기준을 반영하고, 별도 면접 담당자가 생길 때만 `interviewer`를 사용하도록 명확화
+- 2026-07-14: 트레이너 가입 계정과 프로필을 Firebase Auth UID로 연결하는 MVP 기준 추가
