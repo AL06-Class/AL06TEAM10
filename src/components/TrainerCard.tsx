@@ -15,7 +15,7 @@ export default function TrainerCard({ trainer, recommended }: TrainerCardProps) 
         className="relative block rounded-lg border border-[#d9dee7] bg-white p-5 shadow-[0_4px_16px_rgba(23,32,42,0.06)] transition hover:border-primary hover:shadow-[0_6px_20px_rgba(0,102,204,0.15)]"
       >
         {recommended && (
-          <span className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+          <span className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1 text-xs font-bold text-white!">
             추천
           </span>
         )}

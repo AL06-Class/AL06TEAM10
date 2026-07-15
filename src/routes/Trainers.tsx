@@ -68,7 +68,7 @@ export default function TrainerListPage() {
   return (
     <>
       <Header title="트레이너 탐색" />
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-6 py-10">
       <p className="mb-4 flex gap-4 text-sm">
         <Link to="/" className="text-primary">
           홈으로 돌아가기
@@ -105,7 +105,7 @@ export default function TrainerListPage() {
             </p>
             <Link
               to="/onboarding"
-              className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-semibold text-white"
+              className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
             >
               채용 조건 다시 설정하기
             </Link>
@@ -127,7 +127,7 @@ export default function TrainerListPage() {
             <button
               type="button"
               onClick={resetFilters}
-              className="mt-4 rounded bg-primary px-4 py-2 text-sm font-semibold text-white"
+              className="mt-4 rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
             >
               필터 초기화
             </button>

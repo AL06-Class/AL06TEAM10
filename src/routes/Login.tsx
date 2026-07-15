@@ -1,30 +1,22 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { login, type Role } from "../auth/session";
-
-const ROLE_DESTINATION: Record<Role, string> = {
-  recruiter: "/onboarding",
-  trainer: "/trainer",
-};
+import { login } from "../auth/session";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
 
-  const roleParam = searchParams.get("role");
-  const role: Role = roleParam === "trainer" ? "trainer" : "recruiter";
-
   const handleMockLogin = () => {
-    login(role, email || undefined);
-    navigate(ROLE_DESTINATION[role]);
+    login(null, email || undefined);
+    navigate("/");
   };
 
   return (
     <main className="min-h-screen bg-surface">
       <Header />
-      <section className="mx-auto max-w-md px-6 py-16 text-center">
+      <section className="mx-auto max-w-5xl px-6 py-16 text-center">
+        <div className="mx-auto max-w-md">
         <h1 className="mb-8 text-2xl font-bold text-ink">로그인 / 회원가입</h1>
         <div className="flex flex-col gap-3">
           <button
@@ -52,16 +44,11 @@ export default function Login() {
           <button
             type="button"
             onClick={handleMockLogin}
-            className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white"
+            className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white!"
           >
             이메일로 시작하기
           </button>
-          <p className="mt-4 text-sm text-[#52606d]">
-            이미 계정이 있으신가요?{" "}
-            <button type="button" onClick={handleMockLogin} className="font-semibold text-primary">
-              로그인
-            </button>
-          </p>
+        </div>
         </div>
       </section>
     </main>

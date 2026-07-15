@@ -22,7 +22,7 @@ export default function HireProposalButton({ trainerId }: HireProposalButtonProp
         console.log(`[mock] 채용 제안 발송: trainerId=${trainerId}`);
         setSent(true);
       }}
-      className="block w-full rounded bg-primary px-4 py-2 text-center text-sm font-semibold text-white"
+      className="block w-full rounded bg-primary px-4 py-2 text-center text-sm font-semibold text-white!"
     >
       채용 제안 보내기
     </button>

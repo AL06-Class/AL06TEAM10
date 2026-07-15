@@ -100,7 +100,7 @@ export default function Onboarding() {
   return (
     <>
       <Header title="채용 조건 설정" />
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-6 py-10">
       <p className="mb-4 text-sm">
         <Link to="/" className="text-primary">
           홈으로 돌아가기
@@ -216,7 +216,7 @@ export default function Onboarding() {
 
         <button
           type="submit"
-          className="rounded bg-primary px-4 py-2 text-sm font-semibold text-white"
+          className="rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
         >
           트레이너 찾기
         </button>

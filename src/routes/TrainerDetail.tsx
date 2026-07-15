@@ -15,7 +15,7 @@ export default function TrainerProfileDetailPage() {
     return (
       <>
         <Header title="트레이너 프로필" />
-        <main className="mx-auto max-w-2xl px-6 py-10">
+        <main className="mx-auto max-w-5xl px-6 py-10">
           <p className="mb-4 text-sm">
             <Link to="/trainers" className="text-primary">
               ← 목록으로

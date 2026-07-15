@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import { login } from "../auth/session";
 
 const FEATURE_CARDS = [
   {
@@ -23,11 +24,23 @@ const METRICS = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const handleRecruiterStart = () => {
+    login("recruiter");
+    navigate("/onboarding");
+  };
+
+  const handleTrainerStart = () => {
+    login("trainer");
+    navigate("/trainer");
+  };
+
   return (
     <main className="min-h-screen bg-surface">
       <Header />
 
-      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
+      <section className="mx-auto max-w-5xl px-6 py-20 text-center">
         <h1 className="mb-4 text-3xl font-bold leading-tight text-ink sm:text-4xl">
           이력서 말고, 실력으로 뽑으세요.
         </h1>
@@ -35,22 +48,24 @@ export default function Home() {
           검증된 트레이너를 케이스 테스트 결과로 확인하고 채용하세요
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Link
-            to="/login?role=recruiter"
+          <button
+            type="button"
+            onClick={handleRecruiterStart}
             className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white! sm:text-base"
           >
             센터 대표로 시작하기
-          </Link>
-          <Link
-            to="/login?role=trainer"
+          </button>
+          <button
+            type="button"
+            onClick={handleTrainerStart}
             className="rounded border border-primary px-6 py-3 text-sm font-semibold text-primary sm:text-base"
           >
             트레이너로 시작하기
-          </Link>
+          </button>
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-6 pb-16">
+      <section className="mx-auto max-w-5xl px-6 pb-16">
         <h2 className="mb-6 text-center text-xl font-bold text-ink">어떻게 다른가요?</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {FEATURE_CARDS.map((card, index) => (
@@ -68,7 +83,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-6 pb-20 text-center">
+      <section className="mx-auto max-w-5xl px-6 pb-20 text-center">
         <div className="grid grid-cols-1 gap-6 rounded-lg border border-[#d9dee7] bg-white p-8 sm:grid-cols-3">
           {METRICS.map((metric) => (
             <div key={metric.label}>

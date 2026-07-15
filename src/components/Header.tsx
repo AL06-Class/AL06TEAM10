@@ -17,8 +17,11 @@ export default function Header({ title }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-[#d9dee7] bg-white/90 backdrop-blur">
       <div className="mx-auto grid max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-6 py-4">
-        <Link to="/" className="flex items-center gap-2 text-lg font-bold text-ink">
-          <span className="h-2.5 w-2.5 rounded-full bg-primary" aria-hidden="true" />
+        <Link to="/" className="flex items-center gap-[9px] text-[16px] font-[750] text-ink">
+          <span
+            className="h-[11px] w-[11px] rounded-full bg-primary shadow-[inset_0_0_0_3px_#dcecff]"
+            aria-hidden="true"
+          />
           FitProof
         </Link>
         <span className="truncate text-sm font-semibold text-[#52606d]">{title}</span>
