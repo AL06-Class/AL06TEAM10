@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { pageStyles as s } from "./matchStyles";
+import MatchLayout from "./MatchLayout";
 
 const CURATED_CENTERS = [
   { name: "강남 코어짐 센터", area: "서울 강남", tags: "정직원 · PT 전문" },
@@ -9,26 +8,21 @@ const CURATED_CENTERS = [
 
 export default function CentersPage() {
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <h1 style={s.title}>센터 탐색</h1>
-        <p style={s.desc}>MVP에서 제공하는 엄선된 센터 목록입니다.</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
-          {CURATED_CENTERS.map((c) => (
-            <div key={c.name} style={s.listItem}>
-              <p style={s.listItemTitle}>🏢 {c.name}</p>
-              <p style={s.listItemMeta}>
-                {c.area} · {c.tags}
-              </p>
+    <MatchLayout role="candidate" title="센터 탐색" backTo="/trainer/certified" backLabel="인증 완료">
+      <p className="matchEyebrow">트레이너 · 센터 탐색</p>
+      <h1 className="matchTitle">나에게 맞는 센터 찾기</h1>
+      <p className="matchLead">MVP에서 제공하는 센터 목록을 살펴볼 수 있어요.</p>
+      <ul className="matchCenterList spacedList">
+        {CURATED_CENTERS.map((center) => (
+          <li className="matchCenterCard" key={center.name}>
+            <div className="matchCenterTop">
+              <strong>{center.name}</strong>
+              <span className="matchVerifiedBadge">검토된 센터</span>
             </div>
-          ))}
-        </div>
-        <div style={s.actions}>
-          <Link to="/trainer/certified" style={s.secondaryLink}>
-            돌아가기
-          </Link>
-        </div>
-      </div>
-    </div>
+            <p className="matchCenterMeta">{center.area} · {center.tags}</p>
+          </li>
+        ))}
+      </ul>
+    </MatchLayout>
   );
 }

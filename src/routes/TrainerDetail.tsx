@@ -3,9 +3,9 @@ import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
 import Avatar from "../components/Avatar";
-import Header from "../components/Header";
 import { getRecommendedTrainers } from "./trainerFilters";
 import { loadOnboardingConditions } from "./onboardingConditions";
+import ProductHeader from "../components/ProductHeader";
 
 export default function TrainerProfileDetailPage() {
   const { trainerId } = useParams<{ trainerId: string }>();
@@ -13,19 +13,19 @@ export default function TrainerProfileDetailPage() {
 
   if (!trainer) {
     return (
-      <>
-        <Header title="트레이너 프로필" />
-        <main className="mx-auto max-w-5xl px-6 py-10">
-          <p className="mb-4 text-sm">
-            <Link to="/trainers" className="text-primary">
+      <div className="appShell">
+        <ProductHeader title="트레이너 상세" />
+        <main className="mainSurface recruiterMain recruiterNarrow">
+          <p className="pageLinkRow">
+            <Link to="/trainers" className="backLink">
               ← 목록으로
             </Link>
           </p>
-          <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
-            <p className="text-sm text-[#52606d]">트레이너를 찾을 수 없습니다.</p>
+          <div className="emptyState large">
+            <p>트레이너를 찾을 수 없습니다.</p>
           </div>
         </main>
-      </>
+      </div>
     );
   }
 
@@ -37,11 +37,11 @@ export default function TrainerProfileDetailPage() {
   const isRecommended = recommendedIds.has(trainer.id);
 
   return (
-    <>
-      <Header title="트레이너 프로필" />
-      <main className="mx-auto max-w-5xl px-6 py-10">
-      <p className="mb-4 text-sm">
-        <Link to="/trainers" className="text-primary">
+    <div className="appShell">
+      <ProductHeader title="트레이너 상세" />
+      <main className="mainSurface recruiterMain recruiterWide">
+      <p className="pageLinkRow">
+        <Link to="/trainers" className="backLink">
           ← 목록으로
         </Link>
       </p>
@@ -110,7 +110,7 @@ export default function TrainerProfileDetailPage() {
                   to={`/trainers/${trainer.id}/report`}
                   className="mt-1 inline-block text-sm font-semibold text-primary"
                 >
-                  AI 채점 리포트 보기 →
+                  예시 채점 리포트 보기 →
                 </Link>
               </div>
             ) : (
@@ -118,7 +118,7 @@ export default function TrainerProfileDetailPage() {
                 to={`/trainers/${trainer.id}/report`}
                 className="mt-3 inline-block text-sm font-semibold text-primary"
               >
-                AI 채점 리포트 보기 →
+                예시 채점 리포트 보기 →
               </Link>
             )}
           </section>
@@ -158,6 +158,6 @@ export default function TrainerProfileDetailPage() {
         </div>
       </div>
       </main>
-    </>
+    </div>
   );
 }

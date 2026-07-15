@@ -11,7 +11,7 @@ interface SegmentedProps {
 
 export default function Segmented({ options, value, onChange }: SegmentedProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="segmentGroup">
       {options.map((option) => {
         const isSelected = option.value === value;
         return (
@@ -19,11 +19,7 @@ export default function Segmented({ options, value, onChange }: SegmentedProps) 
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
-            className={
-              isSelected
-                ? "rounded border border-primary bg-[#eaf2fc] px-3 py-1.5 text-sm font-semibold text-primary"
-                : "rounded border border-[#d9dee7] px-3 py-1.5 text-sm text-[#52606d]"
-            }
+            className={`segmentButton${isSelected ? " selected" : ""}`}
           >
             {option.label}
           </button>

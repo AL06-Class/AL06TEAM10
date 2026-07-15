@@ -72,6 +72,8 @@ export type TrainerFlowInitialState = {
   caseResult: CaseTestResult;
 };
 
+export const TRAINER_FLOW_STATE_KEY = "mvp.trainer-flow";
+
 const specialtyNames = [
   "재활",
   "다이어트",
@@ -248,4 +250,35 @@ export function createInitialTrainerState(reviewMode: boolean): TrainerFlowIniti
       ? scoreCaseTest(answers.assessment, answers.prescription)
       : scoreCaseTest("", "")
   };
+}
+
+export function loadTrainerFlowState(reviewMode = false): TrainerFlowInitialState {
+  const fallback = createInitialTrainerState(reviewMode);
+  if (reviewMode || typeof localStorage === "undefined") return fallback;
+
+  const raw = localStorage.getItem(TRAINER_FLOW_STATE_KEY);
+  if (!raw) return fallback;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<TrainerFlowInitialState>;
+    if (
+      parsed.profile &&
+      parsed.performanceStats &&
+      parsed.answers &&
+      parsed.caseResult &&
+      Array.isArray(parsed.profile.specialties) &&
+      Array.isArray(parsed.offers)
+    ) {
+      return { ...fallback, ...parsed } as TrainerFlowInitialState;
+    }
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
+}
+
+export function saveTrainerFlowState(state: TrainerFlowInitialState): void {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(TRAINER_FLOW_STATE_KEY, JSON.stringify(state));
 }

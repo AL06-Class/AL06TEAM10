@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
 import ChipGroup from "../components/ChipGroup";
-import Header from "../components/Header";
 import Segmented from "../components/Segmented";
 import {
   CERT_FILTER_OPTIONS,
@@ -12,6 +11,7 @@ import {
   type EmploymentFilter,
 } from "./trainerFilters";
 import { ONBOARDING_DRAFT_KEY, loadInitialValue, serializeDraft } from "./onboardingDraft";
+import ProductHeader from "../components/ProductHeader";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 
@@ -98,43 +98,46 @@ export default function Onboarding() {
   };
 
   return (
-    <>
-      <Header title="채용 조건 설정" />
-      <main className="mx-auto max-w-5xl px-6 py-10">
-      <p className="mb-4 text-sm">
-        <Link to="/" className="text-primary">
-          홈으로 돌아가기
-        </Link>
-      </p>
-      <h1 className="mb-2 text-2xl font-bold text-ink">채용 조건 설정</h1>
-      <p className="mb-6 text-sm text-[#52606d]">
+    <div className="appShell">
+      <ProductHeader title="채용 조건 설정" />
+      <main className="mainSurface recruiterMain recruiterNarrow">
+        <p className="pageLinkRow">
+          <Link to="/recruiter" className="backLink">
+            ← 홈으로 돌아가기
+          </Link>
+        </p>
+        <div className="pageIntro">
+          <p className="kicker">채용 시작하기</p>
+          <h1>채용 조건 설정</h1>
+          <p className="lead">
         센터 정보와 원하는 트레이너 조건을 입력하면 맞춤 추천을 시작합니다.
-      </p>
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-          <h2 className="text-base font-bold text-ink">센터 정보</h2>
+        <form onSubmit={handleSubmit} className="recruiterForm">
+          <section className="flowCard recruiterSection">
+            <h2 className="sectionTitle">센터 정보</h2>
 
-          <div className="mt-4 flex flex-col gap-4">
-            <label className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterFormGrid">
+            <label className="recruiterField span2">
               센터 이름
               <input
                 type="text"
                 value={form.centerName}
                 onChange={(event) => setForm((prev) => ({ ...prev, centerName: event.target.value }))}
-                className="rounded border border-[#d9dee7] px-3 py-2 text-sm text-ink"
+                className="recruiterInput"
               />
               {errors.centerName && (
                 <span className="text-xs text-[#c0392b]">{errors.centerName}</span>
               )}
             </label>
 
-            <label className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <label className="recruiterField">
               지역
               <select
                 value={form.region}
                 onChange={(event) => setForm((prev) => ({ ...prev, region: event.target.value }))}
-                className="rounded border border-[#d9dee7] px-3 py-2 text-sm text-ink"
+                className="recruiterInput"
               >
                 <option value="">선택해 주세요</option>
                 {REGION_OPTIONS.map((option) => (
@@ -146,7 +149,7 @@ export default function Onboarding() {
               {errors.region && <span className="text-xs text-[#c0392b]">{errors.region}</span>}
             </label>
 
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterField span2">
               센터 유형
               <Segmented
                 options={CENTER_TYPE_OPTIONS}
@@ -155,7 +158,7 @@ export default function Onboarding() {
               />
             </div>
 
-            <label className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <label className="recruiterField">
               현재 트레이너 수
               <input
                 type="number"
@@ -164,17 +167,17 @@ export default function Onboarding() {
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, currentTrainerCount: event.target.value }))
                 }
-                className="rounded border border-[#d9dee7] px-3 py-2 text-sm text-ink"
+                className="recruiterInput"
               />
             </label>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <section className="rounded-lg border border-[#d9dee7] bg-white p-6">
-          <h2 className="text-base font-bold text-ink">채용 조건</h2>
+          <section className="flowCard recruiterSection">
+            <h2 className="sectionTitle">채용 조건</h2>
 
-          <div className="mt-4 flex flex-col gap-4">
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterFormGrid">
+            <div className="recruiterField span2">
               경력
               <Segmented
                 options={CAREER_OPTIONS_FOR_ONBOARDING}
@@ -183,7 +186,7 @@ export default function Onboarding() {
               />
             </div>
 
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterField span2">
               자격증
               <Segmented
                 options={CERT_FILTER_OPTIONS}
@@ -192,7 +195,7 @@ export default function Onboarding() {
               />
             </div>
 
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterField span2">
               고용 형태
               <Segmented
                 options={EMPLOYMENT_FILTER_OPTIONS}
@@ -203,7 +206,7 @@ export default function Onboarding() {
               />
             </div>
 
-            <div className="flex flex-col gap-1 text-sm text-[#52606d]">
+            <div className="recruiterField span2">
               원하는 전문 분야
               <ChipGroup
                 options={SPECIALTY_OPTIONS}
@@ -211,17 +214,14 @@ export default function Onboarding() {
                 onToggle={toggleSpecialty}
               />
             </div>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <button
-          type="submit"
-          className="rounded bg-primary px-4 py-2 text-sm font-semibold text-white!"
-        >
-          트레이너 찾기
-        </button>
-      </form>
+          <button type="submit" className="primaryButton recruiterSubmit">
+            트레이너 찾기
+          </button>
+        </form>
       </main>
-    </>
+    </div>
   );
 }

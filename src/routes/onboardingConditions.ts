@@ -2,6 +2,7 @@ import type { CareerBand, CertFilter, EmploymentFilter, OnboardingConditions } f
 import { ONBOARDING_DRAFT_KEY } from "./onboardingDraft";
 
 interface OnboardingDraftShape {
+  centerName?: string;
   specialties?: string[];
   region?: string;
   career?: CareerBand;
@@ -26,6 +27,7 @@ export function loadOnboardingConditions(): OnboardingConditions | null {
   }
 
   return {
+    centerName: typeof draft.centerName === "string" ? draft.centerName : "",
     specialties: Array.isArray(draft.specialties) ? draft.specialties : [],
     region: typeof draft.region === "string" ? draft.region : "",
     career: draft.career ?? "",

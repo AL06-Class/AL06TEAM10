@@ -1,7 +1,11 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getSession, login } from "../auth/session";
+import ProductHeader from "../components/ProductHeader";
 import {
   createDemoOffers,
-  createInitialTrainerState,
+  loadTrainerFlowState,
+  saveTrainerFlowState,
   scoreCaseTest,
   validateCaseTestAnswers,
   type CandidateProfile,
@@ -10,8 +14,6 @@ import {
   type OfferStatus,
   type Specialty
 } from "../trainerFlow";
-import "../App.css";
-
 type ScreenId =
   | "ob1"
   | "ob2"
@@ -58,7 +60,7 @@ function resetOffers() {
   return createDemoOffers();
 }
 
-const reviewSeed = createInitialTrainerState(true);
+const reviewSeed = loadTrainerFlowState(true);
 const demoPassResult = reviewSeed.caseResult;
 const fallbackOffer = createDemoOffers()[0];
 
@@ -105,7 +107,8 @@ function StatusBadge({ status }: { status: OfferStatus | "verified" | "unverifie
 
 export default function App() {
   const reviewMode = new URLSearchParams(window.location.search).get("review") === "1";
-  const initialState = useMemo(() => createInitialTrainerState(reviewMode), [reviewMode]);
+  const navigate = useNavigate();
+  const initialState = useMemo(() => loadTrainerFlowState(reviewMode), [reviewMode]);
   const [screen, setScreen] = useState<ScreenId>("ob1");
   const [stack, setStack] = useState<ScreenId[]>([]);
   const [name, setName] = useState(initialState.profile.name);
@@ -131,6 +134,12 @@ export default function App() {
   const modalRef = useRef<HTMLElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
 
+  useEffect(() => {
+    if (reviewMode && getSession()?.role !== "candidate") {
+      login("candidate", "리뷰 사용자");
+    }
+  }, [reviewMode]);
+
   const ob1Invalid = !(name.trim() && region.trim() && career.trim());
   const selectedSpecialties = useMemo(
     () => specialties.filter((specialty) => specialty.level > 0).sort((a, b) => b.level - a.level),
@@ -154,6 +163,23 @@ export default function App() {
     [career, cert, intro, name, region, selectedSpecialties]
   );
   const testExpired = seconds === 0;
+
+  useEffect(() => {
+    if (reviewMode) return;
+    saveTrainerFlowState({
+      profile: { ...candidateProfile, specialties },
+      performanceStats: {
+        totalCoachedMembers: members,
+        averageReenrollmentRate: reReg,
+        averagePtDurationMonths: ptDur
+      },
+      answers: { assessment: answer1, prescription: answer2 },
+      offers,
+      onboardingCompleted,
+      verified,
+      caseResult
+    });
+  }, [answer1, answer2, caseResult, candidateProfile, members, offers, onboardingCompleted, ptDur, reReg, specialties, verified]);
 
   useEffect(() => {
     const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -326,8 +352,8 @@ export default function App() {
 
   const navigatePrimary = (next: "mypage" | "offers") => {
     setStack([]);
-    setScreen(next);
     setMenuOpen(false);
+    navigate(next === "mypage" ? "/trainer" : "/trainer/offers");
   };
 
   const menuEntries: MenuEntry[] = [
@@ -801,7 +827,14 @@ export default function App() {
             </div>
             <div className="ctaRow">
               {caseResult.tone === "pass" ? (
-                <button className="primaryButton" onClick={() => go("certified", () => setVerified(true))} type="button">
+                <button
+                  className="primaryButton"
+                  onClick={() => {
+                    setVerified(true);
+                    navigate(`/trainer/certified${reviewMode ? "?review=1" : ""}`);
+                  }}
+                  type="button"
+                >
                   인증 완료 화면으로 이동
                 </button>
               ) : (
@@ -844,7 +877,7 @@ export default function App() {
               <button className="secondaryButton" onClick={() => go("mypage", () => setVerified(true))} type="button">
                 내 프로필로 이동
               </button>
-              <button className="primaryButton" onClick={() => go("offers")} type="button">
+              <button className="primaryButton" onClick={() => navigate("/trainer/offers")} type="button">
                 채용 제안 확인하기
               </button>
             </div>
@@ -918,7 +951,7 @@ export default function App() {
                   <p>2026.07.10 제출 · 채점 완료 · PASS {caseResult.overallScore}점</p>
                 </div>
                 <div className="ctaRow">
-                  <button className="primaryButton" onClick={() => go("offers")} type="button">
+                  <button className="primaryButton" onClick={() => navigate("/trainer/offers")} type="button">
                     받은 제안 보기
                   </button>
                 </div>
@@ -1080,26 +1113,25 @@ export default function App() {
   };
 
   return (
-    <main className="appShell">
-      <header className="topBar">
-        <div className="brandMark">
-          <span aria-hidden="true" className="brandDot" />
-          FitProof
-        </div>
-        <span className="topTitle">트레이너 · {screenTitles[screen]}</span>
-        <div className="topActions">
-          {stack.length > 0 ? (
-            <button aria-label="이전 화면으로" className="ghostButton" onClick={back} type="button">
-              뒤로
-            </button>
-          ) : null}
-          {reviewMode ? (
-            <button className="ghostButton muted" onClick={() => setMenuOpen(true)} type="button">
-              리뷰 화면
-            </button>
-          ) : null}
-        </div>
-      </header>
+    <div className="appShell">
+      <ProductHeader
+        contextLabel="트레이너"
+        title={screenTitles[screen]}
+        actions={(
+          <>
+            {stack.length > 0 ? (
+              <button aria-label="이전 화면으로" className="ghostButton" onClick={back} type="button">
+                뒤로
+              </button>
+            ) : null}
+            {reviewMode ? (
+              <button className="ghostButton muted" onClick={() => setMenuOpen(true)} type="button">
+                리뷰 화면
+              </button>
+            ) : null}
+          </>
+        )}
+      />
 
       {showCandidateNav ? (
         <nav aria-label="트레이너 주요 메뉴" className="candidateNav">
@@ -1240,6 +1272,6 @@ export default function App() {
           </section>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }

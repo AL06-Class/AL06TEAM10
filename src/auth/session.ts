@@ -1,6 +1,6 @@
 const SESSION_KEY = "mvp.session";
 
-export type Role = "recruiter" | "trainer";
+export type Role = "recruiter" | "candidate";
 
 export type Session = {
   role: Role | null;
@@ -10,26 +10,32 @@ export type Session = {
 
 export function login(role: Role | null = null, name = "게스트"): Session {
   const session: Session = { role, name, loginAt: new Date().toISOString() };
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  }
   return session;
 }
 
 export function logout(): void {
-  localStorage.removeItem(SESSION_KEY);
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem(SESSION_KEY);
+  }
 }
 
 export function getSession(): Session | null {
+  if (typeof localStorage === "undefined") return null;
   const raw = localStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
+    const role = parsed?.role === "trainer" ? "candidate" : parsed?.role;
     if (
       parsed &&
-      (parsed.role === null || parsed.role === "recruiter" || parsed.role === "trainer") &&
+      (role === null || role === "recruiter" || role === "candidate") &&
       typeof parsed.name === "string" &&
       typeof parsed.loginAt === "string"
     ) {
-      return parsed as Session;
+      return { ...parsed, role } as Session;
     }
     return null;
   } catch {
