@@ -3,6 +3,7 @@ import { trainers } from "../data/trainers";
 import { gradingReports } from "../data/gradingReports";
 import HireProposalButton from "../components/HireProposalButton";
 import Avatar from "../components/Avatar";
+import Header from "../components/Header";
 import { getRecommendedTrainers } from "./trainerFilters";
 import { loadOnboardingConditions } from "./onboardingConditions";
 
@@ -12,16 +13,19 @@ export default function TrainerProfileDetailPage() {
 
   if (!trainer) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="mb-4 text-sm">
-          <Link to="/trainers" className="text-primary">
-            ← 목록으로
-          </Link>
-        </p>
-        <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
-          <p className="text-sm text-[#52606d]">트레이너를 찾을 수 없습니다.</p>
-        </div>
-      </main>
+      <>
+        <Header title="트레이너 프로필" />
+        <main className="mx-auto max-w-5xl px-6 py-10">
+          <p className="mb-4 text-sm">
+            <Link to="/trainers" className="text-primary">
+              ← 목록으로
+            </Link>
+          </p>
+          <div className="rounded-lg border border-dashed border-[#d9dee7] bg-white p-8 text-center">
+            <p className="text-sm text-[#52606d]">트레이너를 찾을 수 없습니다.</p>
+          </div>
+        </main>
+      </>
     );
   }
 
@@ -33,7 +37,9 @@ export default function TrainerProfileDetailPage() {
   const isRecommended = recommendedIds.has(trainer.id);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <>
+      <Header title="트레이너 프로필" />
+      <main className="mx-auto max-w-5xl px-6 py-10">
       <p className="mb-4 text-sm">
         <Link to="/trainers" className="text-primary">
           ← 목록으로
@@ -151,6 +157,7 @@ export default function TrainerProfileDetailPage() {
           </section>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
