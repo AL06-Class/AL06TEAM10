@@ -1,8 +1,14 @@
-import { Link } from "react-router-dom";
-import { getSession } from "../auth/session";
+import { Link, useNavigate } from "react-router-dom";
+import { getSession, logout } from "../auth/session";
 
 export default function Header() {
+  const navigate = useNavigate();
   const session = getSession();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="border-b border-[#d9dee7] bg-white">
@@ -11,7 +17,16 @@ export default function Header() {
           LOGO
         </Link>
         {session ? (
-          <span className="text-sm font-semibold text-ink">{session.name}님</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-ink">{session.name}님</span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-sm font-semibold text-[#52606d]"
+            >
+              로그아웃
+            </button>
+          </div>
         ) : (
           <Link
             to="/login"
