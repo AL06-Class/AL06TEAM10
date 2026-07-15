@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { REGION_OPTIONS, SPECIALTY_OPTIONS } from "../data/trainers";
 import ChipGroup from "../components/ChipGroup";
+import Header from "../components/Header";
 import Segmented from "../components/Segmented";
 import {
   CERT_FILTER_OPTIONS,
@@ -97,7 +98,9 @@ export default function Onboarding() {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <>
+      <Header />
+      <main className="mx-auto max-w-2xl px-6 py-10">
       <p className="mb-4 text-sm">
         <Link to="/" className="text-primary">
           홈으로 돌아가기
@@ -218,6 +221,7 @@ export default function Onboarding() {
           트레이너 찾기
         </button>
       </form>
-    </main>
+      </main>
+    </>
   );
 }
