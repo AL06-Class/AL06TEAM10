@@ -5,6 +5,7 @@ import { trainers } from "../../data/trainers";
 import { createOffer, type EmploymentType } from "../../lib/offers";
 import MatchLayout from "./MatchLayout";
 import { loadOnboardingConditions } from "../../routes/onboardingConditions";
+import { isMvpDemoMode } from "../../demoMode";
 
 export default function OfferFormPage() {
   const [searchParams] = useSearchParams();
@@ -16,10 +17,15 @@ export default function OfferFormPage() {
     ? gradingReports.find((candidate) => candidate.trainerId === trainer.id)
     : undefined;
   const centerName = loadOnboardingConditions()?.centerName ?? "강남 코어짐 센터";
+  const demoMode = isMvpDemoMode();
   const [employmentType, setEmploymentType] = useState<EmploymentType>("정직원");
-  const [salary, setSalary] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [message, setMessage] = useState("");
+  const [salary, setSalary] = useState(demoMode ? "월 290만원 + 인센티브" : "");
+  const [startDate, setStartDate] = useState(demoMode ? "2026-08-01" : "");
+  const [message, setMessage] = useState(
+    demoMode
+      ? "재활 PT 경험과 회원 유지 성과를 보고 제안드립니다. 주 5일 오후 근무를 우선 협의하고 싶습니다."
+      : ""
+  );
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
   if (!trainer) {
@@ -41,7 +47,7 @@ export default function OfferFormPage() {
       salary,
       startDate,
       message
-    });
+    }, demoMode);
 
     if (result.ok) {
       setFeedback({ ok: true, text: `${trainer.name}에게 제안이 저장되었습니다.` });

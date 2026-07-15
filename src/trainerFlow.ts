@@ -40,7 +40,65 @@ export type PerformanceStats = {
 export type CaseTestAnswer = {
   assessment: string;
   prescription: string;
+  communication: string;
+  safety: string;
 };
+
+export type CaseAreaId = keyof CaseTestAnswer;
+
+export type CaseTestArea = {
+  id: CaseAreaId;
+  number: string;
+  name: string;
+  question: string;
+  description: string;
+  minimumLength: number;
+  criteria: string;
+  placeholder: string;
+};
+
+export const CASE_TEST_AREAS: CaseTestArea[] = [
+  {
+    id: "assessment",
+    number: "01",
+    name: "평가 능력",
+    question: "이 회원에게 추가로 확인해야 할 사항은 무엇인가요?",
+    description: "회원의 현재 상태와 위험 요인을 파악하는 질문을 작성해 주세요.",
+    minimumLength: 30,
+    criteria: "주호소·병력·현재 상태 확인",
+    placeholder: "통증 발생 시점, 강도, 과거 병력 등을 확인합니다."
+  },
+  {
+    id: "prescription",
+    number: "02",
+    name: "운동 처방",
+    question: "1~4주 운동 처방과 점진적 진행 방법을 제시해 주세요.",
+    description: "회원의 목표와 현재 상태에 맞는 단계별 계획을 작성해 주세요.",
+    minimumLength: 60,
+    criteria: "운동 선택·점진적 부하·재평가",
+    placeholder: "1~2주에는 통증 없는 범위에서 시작하고, 3~4주에는 점진적으로 부하를 적용합니다."
+  },
+  {
+    id: "communication",
+    number: "03",
+    name: "커뮤니케이션",
+    question: "회원에게 운동 계획과 목표를 어떻게 설명하고 동의를 이끌어 내시겠어요?",
+    description: "회원의 불안을 낮추고 이해를 도울 설명을 작성해 주세요.",
+    minimumLength: 40,
+    criteria: "회원 눈높이 설명·목표 합의·피드백 확인",
+    placeholder: "회원의 걱정을 먼저 듣고 오늘의 목표와 운동 방법, 중단 기준을 쉬운 말로 설명합니다."
+  },
+  {
+    id: "safety",
+    number: "04",
+    name: "안전 고려",
+    question: "어떤 상황에서 운동을 중단하고 병원 진료를 권하시겠어요?",
+    description: "운동 중단 기준과 전문가 연계 기준을 작성해 주세요.",
+    minimumLength: 40,
+    criteria: "위험 신호·중단 기준·전문가 연계",
+    placeholder: "통증이 증가하거나 위험 신호가 나타나면 즉시 중단하고 병원 진료를 권합니다."
+  }
+];
 
 export type ScoreCriterion = {
   name: "평가 능력" | "운동 처방" | "커뮤니케이션" | "안전 고려";
@@ -60,6 +118,8 @@ export type CaseTestValidation = {
   isValid: boolean;
   assessmentError: string | null;
   prescriptionError: string | null;
+  communicationError?: string | null;
+  safetyError?: string | null;
 };
 
 export type TrainerFlowInitialState = {
@@ -135,7 +195,11 @@ const demoAnswers: CaseTestAnswer = {
   assessment:
     "통증 발생 시점과 강도 NRS, 과거 병력, 병원 진단 및 영상 여부, 가동 범위와 계단 외 통증 유발 동작을 확인합니다.",
   prescription:
-    "1~2주는 통증 없는 범위에서 고관절 힌지와 둔근 활성화를 진행하고 회원에게 목표와 중단 기준을 설명합니다. 3~4주는 박스 스쿼트와 낮은 스텝업으로 점진 부하를 적용하며 매 세션 통증 반응을 재평가하고 필요하면 병원 진료를 권합니다."
+    "1~2주는 통증 없는 범위에서 고관절 힌지와 둔근 활성화를 진행하고 회원에게 목표와 중단 기준을 설명합니다. 3~4주는 박스 스쿼트와 낮은 스텝업으로 점진 부하를 적용하며 매 세션 통증 반응을 재평가하고 필요하면 병원 진료를 권합니다.",
+  communication:
+    "회원이 느끼는 불안과 목표를 먼저 듣고, 오늘은 통증 없는 범위에서 움직임을 회복하는 것이 목표라고 설명합니다. 운동 강도와 중단 기준을 쉬운 말로 안내한 뒤 이해했는지 확인하고 매 세션 피드백을 반영하겠습니다.",
+  safety:
+    "운동 중 통증이 증가하거나 붓기, 열감, 저림, 힘 빠짐이 나타나면 즉시 운동을 중단합니다. 병원 진단이나 영상 확인이 필요한 경우에는 무리하게 진행하지 않고 병원 진료를 권하며, 상태를 재평가한 뒤 운동 범위를 조정하겠습니다."
 };
 
 const PASS_SCORE = 80;
@@ -148,21 +212,48 @@ function cappedScore(base: number, hits: number, pointsPerHit: number, lengthBon
   return Math.min(94, base + hits * pointsPerHit + lengthBonus);
 }
 
-export function validateCaseTestAnswers(assessment: string, prescription: string): CaseTestValidation {
+export function validateCaseTestAnswers(
+  assessment: string,
+  prescription: string,
+  communication?: string,
+  safety?: string
+): CaseTestValidation {
   const assessmentError =
     assessment.trim().length < 30 ? "추가 확인 사항을 30자 이상 작성해 주세요." : null;
   const prescriptionError =
     prescription.trim().length < 60 ? "4주 운동 처방을 60자 이상 작성해 주세요." : null;
-
-  return {
+  const baseValidation = {
     isValid: assessmentError === null && prescriptionError === null,
     assessmentError,
     prescriptionError
   };
+
+  if (communication === undefined && safety === undefined) {
+    return baseValidation;
+  }
+
+  const communicationError =
+    (communication ?? "").trim().length < 40 ? "회원에게 설명하는 내용을 40자 이상 작성해 주세요." : null;
+  const safetyError =
+    (safety ?? "").trim().length < 40 ? "안전 기준을 40자 이상 작성해 주세요." : null;
+
+  return {
+    isValid: baseValidation.isValid && communicationError === null && safetyError === null,
+    assessmentError,
+    prescriptionError,
+    communicationError,
+    safetyError
+  };
 }
 
-export function scoreCaseTest(assessment: string, prescription: string): CaseTestResult {
-  const combined = `${assessment} ${prescription}`;
+export function scoreCaseTest(
+  assessment: string,
+  prescription: string,
+  communication?: string,
+  safety?: string
+): CaseTestResult {
+  const communicationAnswer = communication ?? `${assessment} ${prescription}`;
+  const safetyAnswer = safety ?? `${assessment} ${prescription}`;
   const assessmentScore = cappedScore(
     50,
     includesCount(assessment, ["통증", "NRS", "병력", "진단", "영상", "가동 범위", "유발 동작"]),
@@ -177,15 +268,15 @@ export function scoreCaseTest(assessment: string, prescription: string): CaseTes
   );
   const communicationScore = cappedScore(
     55,
-    includesCount(combined, ["회원", "목표", "설명", "동의", "불안", "피드백"]),
+    includesCount(communicationAnswer, ["회원", "목표", "설명", "동의", "불안", "피드백"]),
     7,
-    0
+    communicationAnswer.trim().length >= 100 ? 4 : 0
   );
   const safetyScore = cappedScore(
     55,
-    includesCount(combined, ["병원", "진단", "통증", "중단", "범위", "재평가"]),
+    includesCount(safetyAnswer, ["병원", "진단", "통증", "중단", "범위", "재평가"]),
     6,
-    0
+    safetyAnswer.trim().length >= 100 ? 4 : 0
   );
 
   const scoreByCriteria: ScoreCriterion[] = [
@@ -226,7 +317,9 @@ export function createInitialTrainerState(reviewMode: boolean): TrainerFlowIniti
     name,
     level: reviewMode ? [5, 4, 3, 0, 0, 0][index] : 0
   }));
-  const answers = reviewMode ? { ...demoAnswers } : { assessment: "", prescription: "" };
+  const answers: CaseTestAnswer = reviewMode
+    ? { ...demoAnswers }
+    : { assessment: "", prescription: "", communication: "", safety: "" };
 
   return {
     profile: {
@@ -269,7 +362,16 @@ export function loadTrainerFlowState(reviewMode = false): TrainerFlowInitialStat
       Array.isArray(parsed.profile.specialties) &&
       Array.isArray(parsed.offers)
     ) {
-      return { ...fallback, ...parsed } as TrainerFlowInitialState;
+      return {
+        ...fallback,
+        ...parsed,
+        answers: {
+          assessment: parsed.answers.assessment ?? "",
+          prescription: parsed.answers.prescription ?? "",
+          communication: parsed.answers.communication ?? "",
+          safety: parsed.answers.safety ?? ""
+        }
+      } as TrainerFlowInitialState;
     }
   } catch {
     return fallback;

@@ -90,8 +90,8 @@ export function createOffer(input: {
   salary: string;
   startDate: string;
   message: string;
-}): { ok: true; offer: Offer } | { ok: false; error: string } {
-  const list = loadOffers();
+}, reviewMode = false): { ok: true; offer: Offer } | { ok: false; error: string } {
+  const list = loadOffers(reviewMode);
   const duplicate = list.some(
     (o) => o.trainerName === input.trainerName && o.status === "pending"
   );
@@ -107,7 +107,7 @@ export function createOffer(input: {
     createdAt: now,
     updatedAt: now
   };
-  saveOffers([offer, ...list]);
+  saveOffers([offer, ...list], reviewMode);
   pushNotification("offer_received", `${offer.centerName}에서 ${offer.trainerName}에게 채용 제안을 보냈습니다.`);
   return { ok: true, offer };
 }

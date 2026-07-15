@@ -2,13 +2,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { gradingReports } from "../../data/gradingReports";
 import { trainers } from "../../data/trainers";
 import { loadTrainerFlowState } from "../../trainerFlow";
+import { isMvpDemoMode } from "../../demoMode";
 import MatchLayout from "./MatchLayout";
 
 export default function CertifiedPage() {
   const [searchParams] = useSearchParams();
   const reviewMode = searchParams.get("review") === "1";
   const reviewSuffix = reviewMode ? "?review=1" : "";
-  const state = loadTrainerFlowState(reviewMode);
+  const state = loadTrainerFlowState(reviewMode || isMvpDemoMode());
   const fallbackTrainer = trainers.find((candidate) => candidate.isCertified) ?? trainers[0];
   const trainer = state.profile.name
     ? {
