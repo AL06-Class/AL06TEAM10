@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 export default function Home() {
   const statusText = "실행 완료";
   const titleText =
     "Docker 기반 React 개발 환경이 정상적으로 준비되었습니다.";
   const descriptionText =
-    "Node 22 컨테이너에서 Vite 개발 서버가 실행될 수 있는 상태입니다. 이제 이 화면을 기준으로 프론트엔드 작업을 시작하면 됩니다.";
+    "Node 22 컨테이너에서 Vite 개발 서버가 실행되는 상태입니다. 이제 이 화면을 기준으로 프론트엔드 작업을 시작하면 됩니다.";
 
   return (
     <main
@@ -25,7 +25,7 @@ export default function Home() {
         <h1 className="mb-4 text-[28px] leading-tight">{titleText}</h1>
         <p className="mb-6 text-base leading-[1.6] text-[#52606d]">{descriptionText}</p>
         <p className="mb-3 text-sm text-[#52606d]">
-          현재 역할: recruiter (센터 대표)
+          현재 역할: recruiter (센터 관리자)
         </p>
         <nav className="flex gap-3">
           <Link to="/onboarding" className="text-[#0066cc]">
@@ -36,6 +36,18 @@ export default function Home() {
           </Link>
           <Link to="/trainer" className="text-[#0066cc]">
             트레이너 검증 화면으로 이동
+          </Link>
+          <Link to="/trainer/certified" className="text-[#0066cc]">
+            인증 완료 화면으로 이동
+          </Link>
+          <Link to="/owner/offer/new" className="text-[#0066cc]">
+            채용 제안 보내기로 이동
+          </Link>
+          <Link to="/trainer/offers" className="text-[#0066cc]">
+            받은 제안 목록으로 이동
+          </Link>
+          <Link to="/notifications" className="text-[#0066cc]">
+            알림 목록으로 이동
           </Link>
         </nav>
       </section>
