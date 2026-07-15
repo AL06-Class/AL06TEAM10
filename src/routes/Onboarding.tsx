@@ -99,7 +99,7 @@ export default function Onboarding() {
 
   return (
     <>
-      <Header />
+      <Header title="채용 조건 설정" />
       <main className="mx-auto max-w-2xl px-6 py-10">
       <p className="mb-4 text-sm">
         <Link to="/" className="text-primary">

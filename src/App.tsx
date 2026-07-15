@@ -5,7 +5,6 @@ import Trainers from "./routes/Trainers";
 import TrainerDetail from "./routes/TrainerDetail";
 import GradingReport from "./routes/GradingReport";
 import TrainerFlow from "./routes/TrainerFlow";
-import RoleSelect from "./routes/RoleSelect";
 import Login from "./routes/Login";
 
 export default function App() {
@@ -14,7 +13,6 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={reviewMode ? <Navigate replace to="/trainer?review=1" /> : <Home />} />
-      <Route path="/role" element={<RoleSelect />} />
       <Route path="/login" element={<Login />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/trainers" element={<Trainers />} />

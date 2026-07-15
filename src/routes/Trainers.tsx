@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import TrainerCard from "../components/TrainerCard";
 import TrainerFilterBar from "../components/TrainerFilterBar";
+import Header from "../components/Header";
 import { trainers } from "../data/trainers";
 import {
   filterTrainers,
@@ -65,7 +66,9 @@ export default function TrainerListPage() {
   }, [specialtiesKey, region, career, cert, employment]);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <>
+      <Header title="트레이너 탐색" />
+      <main className="mx-auto max-w-4xl px-6 py-10">
       <p className="mb-4 flex gap-4 text-sm">
         <Link to="/" className="text-primary">
           홈으로 돌아가기
@@ -157,6 +160,7 @@ export default function TrainerListPage() {
           </div>
         )}
       </section>
-    </main>
+      </main>
+    </>
   );
 }

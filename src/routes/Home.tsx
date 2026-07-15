@@ -3,17 +3,14 @@ import Header from "../components/Header";
 
 const FEATURE_CARDS = [
   {
-    icon: "📋",
     title: "케이스 테스트",
     description: "실무 시나리오 기반 케이스 테스트로 트레이너의 실력을 검증합니다.",
   },
   {
-    icon: "🤖",
     title: "AI 채점 리포트",
     description: "AI가 케이스 테스트 결과를 분석해 객관적인 채점 리포트를 제공합니다.",
   },
   {
-    icon: "✅",
     title: "매칭 추천",
     description: "센터 조건에 맞는 트레이너를 추천 순위로 정리해 보여줍니다.",
   },
@@ -39,13 +36,13 @@ export default function Home() {
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Link
-            to="/role"
-            className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white sm:text-base"
+            to="/login?role=recruiter"
+            className="rounded bg-primary px-6 py-3 text-sm font-semibold text-white! sm:text-base"
           >
             센터 대표로 시작하기
           </Link>
           <Link
-            to="/role"
+            to="/login?role=trainer"
             className="rounded border border-primary px-6 py-3 text-sm font-semibold text-primary sm:text-base"
           >
             트레이너로 시작하기
@@ -56,12 +53,14 @@ export default function Home() {
       <section className="mx-auto max-w-4xl px-6 pb-16">
         <h2 className="mb-6 text-center text-xl font-bold text-ink">어떻게 다른가요?</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {FEATURE_CARDS.map((card) => (
+          {FEATURE_CARDS.map((card, index) => (
             <div
               key={card.title}
               className="rounded-lg border border-[#d9dee7] bg-white p-6 text-center shadow-[0_10px_30px_rgba(23,32,42,0.06)]"
             >
-              <p className="mb-3 text-3xl">{card.icon}</p>
+              <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                {index + 1}
+              </span>
               <h3 className="mb-2 text-base font-bold text-ink">{card.title}</h3>
               <p className="text-sm text-[#52606d]">{card.description}</p>
             </div>
@@ -70,7 +69,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-4xl px-6 pb-20 text-center">
-        <div className="mb-8 grid grid-cols-1 gap-6 rounded-lg border border-[#d9dee7] bg-white p-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 rounded-lg border border-[#d9dee7] bg-white p-8 sm:grid-cols-3">
           {METRICS.map((metric) => (
             <div key={metric.label}>
               <p className="mb-1 text-2xl font-bold text-primary">{metric.value}</p>
@@ -78,12 +77,6 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <Link
-          to="/role"
-          className="inline-block rounded bg-primary px-6 py-3 text-sm font-semibold text-white sm:text-base"
-        >
-          지금 시작하기
-        </Link>
       </section>
     </main>
   );
