@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { getOffer } from "../../lib/offers";
+import { isMvpDemoMode } from "../../demoMode";
 import MatchLayout from "./MatchLayout";
 
 const SAMPLE_CONTACT = {
@@ -14,7 +15,8 @@ export default function ConfirmedPage() {
   const [searchParams] = useSearchParams();
   const reviewSuffix = searchParams.get("review") === "1" ? "?review=1" : "";
   const reviewMode = reviewSuffix !== "";
-  const offer = useMemo(() => (offerId ? getOffer(offerId, reviewMode) : null), [offerId, reviewMode]);
+  const storageMode = reviewMode || isMvpDemoMode();
+  const offer = useMemo(() => (offerId ? getOffer(offerId, storageMode) : null), [offerId, storageMode]);
 
   if (!offer || offer.status !== "accepted") {
     return (

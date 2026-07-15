@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getOffer, getOfferStatusLabel, updateOfferStatus } from "../../lib/offers";
+import { isMvpDemoMode } from "../../demoMode";
 import MatchLayout from "./MatchLayout";
 
 export default function OfferDetailPage() {
@@ -9,6 +10,7 @@ export default function OfferDetailPage() {
   const [searchParams] = useSearchParams();
   const reviewSuffix = searchParams.get("review") === "1" ? "?review=1" : "";
   const reviewMode = reviewSuffix !== "";
+  const storageMode = reviewMode || isMvpDemoMode();
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const modalRef = useRef<HTMLElement>(null);
@@ -49,7 +51,7 @@ export default function OfferDetailPage() {
     };
   }, [showDeclineModal]);
 
-  const offer = useMemo(() => (offerId ? getOffer(offerId, reviewMode) : null), [offerId, reviewMode]);
+  const offer = useMemo(() => (offerId ? getOffer(offerId, storageMode) : null), [offerId, storageMode]);
 
   if (!offer) {
     return (
@@ -62,7 +64,7 @@ export default function OfferDetailPage() {
   }
 
   const decide = (next: "accepted" | "declined") => {
-    const updated = updateOfferStatus(offer.id, next, reviewMode);
+    const updated = updateOfferStatus(offer.id, next, storageMode);
     if (!updated) {
       setError("이미 처리된 제안입니다.");
       return;

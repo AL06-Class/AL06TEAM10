@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { ensureReviewOffers, loadOffers, getOfferStatusLabel, type Offer } from "../../lib/offers";
+import { isMvpDemoMode } from "../../demoMode";
 import MatchLayout from "./MatchLayout";
 
 function OfferCard({ offer, reviewSuffix }: { offer: Offer; reviewSuffix: string }) {
@@ -31,8 +32,10 @@ function OfferCard({ offer, reviewSuffix }: { offer: Offer; reviewSuffix: string
 export default function OfferListPage() {
   const [searchParams] = useSearchParams();
   const reviewMode = searchParams.get("review") === "1";
+  const demoMode = isMvpDemoMode();
+  const sampleMode = reviewMode || demoMode;
   const reviewSuffix = reviewMode ? "?review=1" : "";
-  const offers = reviewMode ? ensureReviewOffers() : loadOffers();
+  const offers = sampleMode ? ensureReviewOffers() : loadOffers();
   const pending = offers.filter((offer) => offer.status === "pending");
   const past = offers.filter((offer) => offer.status !== "pending");
 

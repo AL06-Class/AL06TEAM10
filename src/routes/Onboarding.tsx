@@ -12,6 +12,7 @@ import {
 } from "./trainerFilters";
 import { ONBOARDING_DRAFT_KEY, loadInitialValue, serializeDraft } from "./onboardingDraft";
 import ProductHeader from "../components/ProductHeader";
+import { isMvpDemoMode } from "../demoMode";
 
 type CenterType = "일반 헬스장" | "개인 PT 스튜디오" | "필라테스·기타";
 
@@ -39,10 +40,22 @@ const INITIAL_FORM_STATE: OnboardingFormState = {
   employment: "",
 };
 
+const DEMO_FORM_STATE: OnboardingFormState = {
+  centerName: "강남 코어짐 센터",
+  centerType: "일반 헬스장",
+  currentTrainerCount: "8",
+  specialties: ["웨이트 트레이닝"],
+  region: "서울",
+  career: "",
+  cert: "national",
+  employment: "fulltime",
+};
+
 // 🐛 회귀 수정(이전 사이클): 마운트 시 localStorage 복원은 useState lazy initializer로
 // 동기 수행 — effect 순서 레이스(React.StrictMode 이중 마운트에서 저장 이펙트가 기본값으로
 // 덮어쓰는 문제)를 원천 제거. 저장 이펙트만 유지.
 function loadInitialForm(): OnboardingFormState {
+  if (isMvpDemoMode()) return { ...DEMO_FORM_STATE, specialties: [...DEMO_FORM_STATE.specialties] };
   return loadInitialValue(ONBOARDING_DRAFT_KEY, INITIAL_FORM_STATE);
 }
 
@@ -61,12 +74,14 @@ const CAREER_OPTIONS_FOR_ONBOARDING: { value: CareerBand; label: string }[] = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const demoMode = isMvpDemoMode();
   const [form, setForm] = useState<OnboardingFormState>(loadInitialForm);
   const [errors, setErrors] = useState<{ centerName?: string; region?: string }>({});
 
   useEffect(() => {
+    if (demoMode) return;
     localStorage.setItem(ONBOARDING_DRAFT_KEY, serializeDraft(form));
-  }, [form]);
+  }, [demoMode, form]);
 
   const toggleSpecialty = (specialty: string) => {
     setForm((prev) => ({

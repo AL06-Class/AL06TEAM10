@@ -2,13 +2,17 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSession, login } from "../auth/session";
 import ProductHeader from "../components/ProductHeader";
+import { isMvpDemoMode } from "../demoMode";
 import {
+  CASE_TEST_AREAS,
   createDemoOffers,
   loadTrainerFlowState,
   saveTrainerFlowState,
   scoreCaseTest,
   validateCaseTestAnswers,
   type CandidateProfile,
+  type CaseAreaId,
+  type CaseTestAnswer,
   type CaseTestResult,
   type HiringOffer,
   type OfferStatus,
@@ -20,6 +24,7 @@ type ScreenId =
   | "ob3"
   | "caseIntro"
   | "caseSession"
+  | "caseReview"
   | "result"
   | "certified"
   | "mypage"
@@ -44,6 +49,7 @@ const screenTitles: Record<ScreenId, string> = {
   ob3: "프로필 등록",
   caseIntro: "케이스 테스트",
   caseSession: "케이스 테스트",
+  caseReview: "답변 검토",
   result: "예시 채점 결과",
   certified: "인증 완료",
   mypage: "마이페이지",
@@ -75,6 +81,10 @@ function formatTime(totalSeconds: number) {
   return `${minutes}:${seconds}`;
 }
 
+function formatAreaScore(value: number) {
+  return (value / 4).toFixed(1).replace(/\.0$/, "");
+}
+
 function ProgressSteps({ active }: { active: number }) {
   return (
     <div
@@ -87,6 +97,27 @@ function ProgressSteps({ active }: { active: number }) {
     >
       {[1, 2, 3].map((step) => (
         <span aria-hidden="true" className={step <= active ? "active" : ""} key={step} />
+      ))}
+    </div>
+  );
+}
+
+function CaseProgressSteps({ active }: { active: number }) {
+  return (
+    <div
+      aria-label={`케이스 테스트 ${active}단계 진행 중`}
+      aria-valuemax={4}
+      aria-valuemin={1}
+      aria-valuenow={active}
+      className="progressSteps caseProgressSteps"
+      role="progressbar"
+    >
+      {CASE_TEST_AREAS.map((area, index) => (
+        <span
+          aria-label={`${area.number} ${area.name}`}
+          className={index + 1 <= active ? "active" : ""}
+          key={area.id}
+        />
       ))}
     </div>
   );
@@ -107,8 +138,12 @@ function StatusBadge({ status }: { status: OfferStatus | "verified" | "unverifie
 
 export default function App() {
   const reviewMode = new URLSearchParams(window.location.search).get("review") === "1";
+  const demoMode = isMvpDemoMode();
   const navigate = useNavigate();
-  const initialState = useMemo(() => loadTrainerFlowState(reviewMode), [reviewMode]);
+  const initialState = useMemo(
+    () => loadTrainerFlowState(reviewMode || demoMode),
+    [demoMode, reviewMode]
+  );
   const [screen, setScreen] = useState<ScreenId>("ob1");
   const [stack, setStack] = useState<ScreenId[]>([]);
   const [name, setName] = useState(initialState.profile.name);
@@ -122,11 +157,14 @@ export default function App() {
   const [ptDur, setPtDur] = useState(initialState.performanceStats.averagePtDurationMonths);
   const [answer1, setAnswer1] = useState(initialState.answers.assessment);
   const [answer2, setAnswer2] = useState(initialState.answers.prescription);
+  const [communication, setCommunication] = useState(initialState.answers.communication);
+  const [safety, setSafety] = useState(initialState.answers.safety);
   const [seconds, setSeconds] = useState(20 * 60);
   const [caseResult, setCaseResult] = useState<CaseTestResult>(initialState.caseResult);
   const [verified, setVerified] = useState(initialState.verified);
   const [offers, setOffers] = useState<HiringOffer[]>(initialState.offers);
   const [onboardingCompleted, setOnboardingCompleted] = useState(initialState.onboardingCompleted);
+  const [caseAreaIndex, setCaseAreaIndex] = useState(0);
   const [caseDetailsOpen, setCaseDetailsOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(0);
   const [modal, setModal] = useState<ModalKind>(null);
@@ -148,9 +186,23 @@ export default function App() {
   const ob2Invalid = selectedSpecialties.length === 0;
   const activeOffer = offers[selectedOffer] ?? offers[0] ?? fallbackOffer;
   const answerValidation = useMemo(
-    () => validateCaseTestAnswers(answer1, answer2),
-    [answer1, answer2]
+    () => validateCaseTestAnswers(answer1, answer2, communication, safety),
+    [answer1, answer2, communication, safety]
   );
+  const currentCaseArea = CASE_TEST_AREAS[caseAreaIndex];
+  const caseAnswers: CaseTestAnswer = {
+    assessment: answer1,
+    prescription: answer2,
+    communication,
+    safety
+  };
+  const currentCaseAnswer = caseAnswers[currentCaseArea.id];
+  const currentCaseError = {
+    assessment: answerValidation.assessmentError,
+    prescription: answerValidation.prescriptionError,
+    communication: answerValidation.communicationError ?? null,
+    safety: answerValidation.safetyError ?? null
+  }[currentCaseArea.id];
   const candidateProfile = useMemo<CandidateProfile>(
     () => ({
       name,
@@ -165,7 +217,7 @@ export default function App() {
   const testExpired = seconds === 0;
 
   useEffect(() => {
-    if (reviewMode) return;
+    if (reviewMode || demoMode) return;
     saveTrainerFlowState({
       profile: { ...candidateProfile, specialties },
       performanceStats: {
@@ -173,13 +225,13 @@ export default function App() {
         averageReenrollmentRate: reReg,
         averagePtDurationMonths: ptDur
       },
-      answers: { assessment: answer1, prescription: answer2 },
+      answers: { assessment: answer1, prescription: answer2, communication, safety },
       offers,
       onboardingCompleted,
       verified,
       caseResult
     });
-  }, [answer1, answer2, caseResult, candidateProfile, members, offers, onboardingCompleted, ptDur, reReg, specialties, verified]);
+  }, [answer1, answer2, caseResult, candidateProfile, communication, demoMode, members, offers, onboardingCompleted, ptDur, reReg, reviewMode, safety, specialties, verified]);
 
   useEffect(() => {
     const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -292,33 +344,68 @@ export default function App() {
     performBack();
   };
 
+  const resetCaseAnswers = () => {
+    const nextAnswers = demoMode ? initialState.answers : {
+      assessment: "",
+      prescription: "",
+      communication: "",
+      safety: ""
+    };
+    setAnswer1(nextAnswers.assessment);
+    setAnswer2(nextAnswers.prescription);
+    setCommunication(nextAnswers.communication);
+    setSafety(nextAnswers.safety);
+  };
+
   const leaveTest = () => {
-    setAnswer1("");
-    setAnswer2("");
+    resetCaseAnswers();
     setSeconds(20 * 60);
+    setCaseAreaIndex(0);
     setModal(null);
     performBack();
   };
 
   const startTest = () => {
     setSeconds(20 * 60);
+    setCaseAreaIndex(0);
     setCaseDetailsOpen(false);
     go("caseSession");
   };
 
   const restartTest = () => {
     setSeconds(20 * 60);
-    setAnswer1("");
-    setAnswer2("");
+    setCaseAreaIndex(0);
+    resetCaseAnswers();
     setCaseDetailsOpen(false);
   };
 
   const submitCaseTest = () => {
-    const nextResult = scoreCaseTest(answer1, answer2);
+    const nextResult = scoreCaseTest(answer1, answer2, communication, safety);
     setCaseResult(nextResult);
     setVerified(nextResult.tone === "pass");
     setModal(null);
     go("result");
+  };
+
+  const setCaseAnswer = (areaId: CaseAreaId, value: string) => {
+    if (areaId === "assessment") setAnswer1(value);
+    if (areaId === "prescription") setAnswer2(value);
+    if (areaId === "communication") setCommunication(value);
+    if (areaId === "safety") setSafety(value);
+  };
+
+  const moveCaseArea = (direction: -1 | 1) => {
+    if (direction === 1 && currentCaseError) return;
+    const nextIndex = caseAreaIndex + direction;
+    if (nextIndex < 0 || nextIndex >= CASE_TEST_AREAS.length) return;
+    setCaseAreaIndex(nextIndex);
+    setCaseDetailsOpen(false);
+  };
+
+  const reviewAnswers = () => {
+    if (!answerValidation.isValid) return;
+    setCaseDetailsOpen(false);
+    go("caseReview");
   };
 
   const setLevel = (index: number, level: number) => {
@@ -345,7 +432,7 @@ export default function App() {
     go("offers");
   };
 
-  const onboardingScreens: ScreenId[] = ["ob1", "ob2", "ob3", "caseIntro", "caseSession"];
+  const onboardingScreens: ScreenId[] = ["ob1", "ob2", "ob3", "caseIntro", "caseSession", "caseReview"];
   const showCandidateNav = onboardingCompleted && !onboardingScreens.includes(screen);
   const profileTabActive = screen === "mypage" || screen === "certified";
   const offersTabActive = screen === "offers" || screen === "offerDetail" || screen === "confirmed";
@@ -362,6 +449,7 @@ export default function App() {
     { label: "온보딩 3 · 성과 데이터", sub: "선택 입력", screen: "ob3" },
     { label: "케이스 테스트 안내", sub: "기준·채점 영역", screen: "caseIntro" },
     { label: "케이스 테스트 응시", sub: "타이머·서술형 답변", screen: "caseSession", setup: () => setSeconds(20 * 60) },
+    { label: "답변 검토", sub: "4개 영역 제출 전 확인", screen: "caseReview" },
     { label: "케이스 테스트 · 시간 종료", sub: "재시작 상태", screen: "caseSession", setup: () => setSeconds(0) },
     {
       label: "채점 결과 · PASS",
@@ -619,15 +707,15 @@ export default function App() {
           <section className="flowSurface compact">
             <p className="kicker">케이스 테스트</p>
             <h1>실무 역량을 인증받아요</h1>
-            <p className="lead">실제 회원 케이스 1개에 서술형으로 답하면 현재 예시 채점 기준으로 인증 결과를 확인할 수 있어요.</p>
+            <p className="lead">하나의 회원 케이스를 4개 평가 영역으로 나눠 답하고, 마지막에 합산 결과를 확인해요.</p>
             <div className="metricGrid">
               <div className="metricCard">
                 <span>소요시간</span>
                 <strong>20분</strong>
               </div>
               <div className="metricCard">
-                <span>답변 방식</span>
-                <strong>서술형</strong>
+                <span>진행 방식</span>
+                <strong>4단계</strong>
               </div>
               <div className="metricCard">
                 <span>인증 기준</span>
@@ -635,15 +723,19 @@ export default function App() {
               </div>
             </div>
             <div className="rubricSection">
-              <span>채점 영역</span>
-              <div className="rubricGrid">
-                {demoPassResult.scoreByCriteria.map((row) => (
-                  <strong key={row.name}>{row.name}</strong>
+              <span>채점 영역 · 영역별 25점</span>
+              <div className="rubricGrid caseRubricGrid">
+                {CASE_TEST_AREAS.map((area) => (
+                  <div className="caseRubricItem" key={area.id}>
+                    <b>{area.number}</b>
+                    <strong>{area.name}</strong>
+                    <span>25점</span>
+                  </div>
                 ))}
               </div>
             </div>
             <div className="callout warning">
-              임시저장은 지원하지 않아요. 시작하면 도중에 나가거나 새로고침할 경우 작성 내용이 사라질 수 있어요.
+              테스트를 시작하면 20분 타이머가 시작돼요. 영역 사이를 이동하며 답변하고 마지막에 한 번 제출합니다.
             </div>
             <div className="ctaRow">
               <button
@@ -666,13 +758,21 @@ export default function App() {
       case "caseSession":
         return (
           <section className="flowSurface wide caseSessionSurface">
-            <div
-              aria-label={`남은 시간 ${formatTime(seconds)}`}
-              className={seconds <= 60 ? "timerBox low" : "timerBox"}
-              role="timer"
-            >
-              <span>남은 시간</span>
-              <strong>{formatTime(seconds)}</strong>
+            <CaseProgressSteps active={caseAreaIndex + 1} />
+            <div className="caseSessionHeader">
+              <div>
+                <p className="kicker">{currentCaseArea.number} / 04 · {currentCaseArea.name}</p>
+                <h1>{currentCaseArea.question}</h1>
+                <p className="lead">{currentCaseArea.description}</p>
+              </div>
+              <div
+                aria-label={`남은 시간 ${formatTime(seconds)}`}
+                className={seconds <= 60 ? "timerBox low" : "timerBox"}
+                role="timer"
+              >
+                <span>남은 시간</span>
+                <strong>{formatTime(seconds)}</strong>
+              </div>
             </div>
             {seconds === 60 ? <span className="srOnly" role="alert">응시 시간이 1분 남았습니다.</span> : null}
             {testExpired ? (
@@ -721,35 +821,20 @@ export default function App() {
               </aside>
               <div className="answerStack">
                 <label className="field">
-                  <span>Q1. 이 회원에게 추가로 확인할 사항은?</span>
+                  <span>{currentCaseArea.name} 답변</span>
                   <textarea
-                    aria-describedby="assessment-help"
-                    aria-invalid={Boolean(answerValidation.assessmentError)}
+                    aria-describedby={`case-answer-help-${currentCaseArea.id}`}
+                    aria-invalid={Boolean(currentCaseError)}
                     disabled={testExpired}
-                    value={answer1}
-                    onChange={(event) => setAnswer1(fieldValue(event))}
+                    placeholder={currentCaseArea.placeholder}
+                    value={currentCaseAnswer}
+                    onChange={(event) => setCaseAnswer(currentCaseArea.id, fieldValue(event))}
                   />
                   <em
-                    className={answerValidation.assessmentError ? "fieldMeta error" : "fieldMeta valid"}
-                    id="assessment-help"
+                    className={currentCaseError ? "fieldMeta error" : "fieldMeta valid"}
+                    id={`case-answer-help-${currentCaseArea.id}`}
                   >
-                    {answerValidation.assessmentError ?? "제출 가능한 분량입니다."} · {answer1.trim().length}자
-                  </em>
-                </label>
-                <label className="field">
-                  <span>Q2. 4주 운동 처방 계획을 제시하세요</span>
-                  <textarea
-                    aria-describedby="prescription-help"
-                    aria-invalid={Boolean(answerValidation.prescriptionError)}
-                    disabled={testExpired}
-                    value={answer2}
-                    onChange={(event) => setAnswer2(fieldValue(event))}
-                  />
-                  <em
-                    className={answerValidation.prescriptionError ? "fieldMeta error" : "fieldMeta valid"}
-                    id="prescription-help"
-                  >
-                    {answerValidation.prescriptionError ?? "제출 가능한 분량입니다."} · {answer2.trim().length}자
+                    {currentCaseError ?? `${currentCaseArea.minimumLength}자 이상 작성하면 다음 단계로 이동할 수 있어요.`} · {currentCaseAnswer.trim().length}자
                   </em>
                 </label>
               </div>
@@ -761,17 +846,65 @@ export default function App() {
                 </button>
               ) : (
                 <>
-                  {!answerValidation.isValid ? <span>두 답변의 최소 분량을 확인해 주세요.</span> : null}
                   <button
-                    className="primaryButton"
-                    disabled={!answerValidation.isValid}
-                    onClick={() => setModal("submit")}
+                    className="secondaryButton"
+                    disabled={caseAreaIndex === 0}
+                    onClick={() => moveCaseArea(-1)}
                     type="button"
                   >
-                    답변 제출하기
+                    이전 영역
+                  </button>
+                  <button
+                    className="primaryButton"
+                    disabled={Boolean(currentCaseError)}
+                    onClick={caseAreaIndex === CASE_TEST_AREAS.length - 1 ? reviewAnswers : () => moveCaseArea(1)}
+                    type="button"
+                  >
+                    {caseAreaIndex === CASE_TEST_AREAS.length - 1 ? "답변 검토하기" : "다음 영역"}
                   </button>
                 </>
               )}
+            </div>
+          </section>
+        );
+
+      case "caseReview":
+        return (
+          <section className="flowSurface compact">
+            <p className="kicker">제출 전 확인</p>
+            <h1>답변을 검토해 주세요</h1>
+            <p className="lead">4개 평가 영역의 답변을 확인한 뒤 한 번에 제출합니다.</p>
+            <ol className="caseReviewList">
+              {CASE_TEST_AREAS.map((area, index) => (
+                <li className="caseReviewItem" key={area.id}>
+                  <div className="caseReviewHeading">
+                    <span>{area.number}</span>
+                    <div>
+                      <strong>{area.name}</strong>
+                      <small>배점 25점 · 작성 {caseAnswers[area.id].trim().length}자</small>
+                    </div>
+                    <button
+                      className="compactButton"
+                      onClick={() => {
+                        setCaseAreaIndex(index);
+                        go("caseSession");
+                      }}
+                      type="button"
+                    >
+                      수정
+                    </button>
+                  </div>
+                  <p>{caseAnswers[area.id]}</p>
+                </li>
+              ))}
+            </ol>
+            <div className="callout warning">
+              제출 후에는 답변을 수정할 수 없습니다. 모든 영역을 확인했는지 마지막으로 점검해 주세요.
+            </div>
+            <div className="ctaRow">
+              <button className="primaryButton" onClick={() => setModal("submit")} type="button">
+                제출하고 채점 보기
+              </button>
             </div>
           </section>
         );
@@ -781,7 +914,7 @@ export default function App() {
           <section className="flowSurface compact">
             <p className="kicker">프로토타입 채점</p>
             <h1>예시 채점 결과</h1>
-            <p className="lead">실제 AI가 연결되기 전 사용하는 예시 결과예요. 입력 내용에 포함된 평가·안전·처방 근거를 기준으로 계산합니다.</p>
+            <p className="lead">실제 AI가 연결되기 전 사용하는 예시 결과예요. 4개 평가 영역을 각각 채점하고 평균을 계산합니다.</p>
             <div className="resultGrid">
               <div className={`scoreHero ${caseResult.tone}`}>
                 <span>{caseResult.tone === "pass" ? "인증 통과" : "인증 미달"}</span>
@@ -800,10 +933,10 @@ export default function App() {
                       <span className={row.value >= 80 ? "criterionStatus pass" : "criterionStatus fail"}>
                         {row.value >= 80 ? "기준 통과" : "보완 필요"}
                       </span>
-                      <strong>{row.value}</strong>
+                      <strong>{formatAreaScore(row.value)}<small>/25</small></strong>
                     </div>
                     <span
-                      aria-label={`${row.name} ${row.value}점`}
+                      aria-label={`${row.name} ${formatAreaScore(row.value)}점 / 25점`}
                       aria-valuemax={100}
                       aria-valuemin={0}
                       aria-valuenow={row.value}
@@ -1201,7 +1334,7 @@ export default function App() {
                 <p>제출 확인</p>
                 <h2 id="flow-modal-title">답변을 제출할까요?</h2>
                 <span>
-                  Q1 {answer1.trim().length}자, Q2 {answer2.trim().length}자를 제출합니다. 제출 후에는 답변을 수정할 수 없어요.
+                  평가 능력·운동 처방·커뮤니케이션·안전 고려 4개 영역의 답변을 제출합니다. 제출 후에는 답변을 수정할 수 없어요.
                 </span>
                 <div className="modalActions">
                   <button className="secondaryButton" onClick={() => setModal(null)} type="button">

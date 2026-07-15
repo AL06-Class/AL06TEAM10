@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../auth/session";
 import ProductHeader from "../components/ProductHeader";
+import { isMvpDemoMode } from "../demoMode";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(isMvpDemoMode() ? "demo@fitproof.example" : "");
 
   const handleMockLogin = () => {
     login(null, email || "게스트");

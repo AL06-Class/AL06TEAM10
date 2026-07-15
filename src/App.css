@@ -883,103 +883,256 @@ textarea.matchInput {
 
 .landingMain {
   display: grid;
-  gap: 72px;
-  max-width: 1120px;
-  padding-top: 80px;
+  gap: 54px;
+  max-width: 1180px;
+  padding-top: 54px;
 }
 
-.landingHero {
-  max-width: 760px;
+.landingHeroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
+  gap: 56px;
+  align-items: end;
+  min-height: 500px;
 }
 
-.landingHero h1 {
-  max-width: 720px;
-  font-size: 56px;
+.landingHeroCopy {
+  padding: 18px 0 34px;
+}
+
+.landingHeroCopy h1 {
+  max-width: 690px;
+  margin-top: 22px;
+  font-size: 50px;
+  font-weight: 650;
+  line-height: 1.13;
   letter-spacing: 0;
 }
 
-.landingHero .lead {
-  max-width: 620px;
-  font-size: 18px;
+.landingHeroCopy .lead {
+  max-width: 540px;
+  margin-top: 22px;
+  font-size: 17px;
+  line-height: 1.65;
 }
 
 .landingActions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 34px;
 }
 
-.landingSection {
-  border-top: 1px solid var(--line);
-  padding-top: 28px;
+.landingEvidence {
+  min-height: 410px;
+  padding: 28px;
+  border: 1px solid #cbdff6;
+  background: #f1f7ff;
+  transition: transform 180ms ease, border-color 180ms ease;
 }
 
-.landingFeatureGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+.landingEvidence:hover {
+  border-color: #8db7e8;
+  transform: translateY(-2px);
 }
 
-.landingFeature {
-  display: grid;
-  gap: 10px;
-  min-height: 190px;
-  padding: 22px 20px;
-  border-right: 1px solid var(--line);
+.landingEvidence:active {
+  opacity: 0.96;
+  transform: translateY(0);
 }
 
-.landingFeature:last-child {
-  border-right: 0;
+.landingEvidenceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.landingFeatureNumber {
-  color: var(--blue);
+.landingEvidenceLabel,
+.landingEvidenceStatus {
+  margin: 0;
   font-size: 12px;
   font-weight: 800;
 }
 
-.landingFeature h3,
-.landingFeature p {
+.landingEvidenceLabel {
+  color: var(--blue);
+}
+
+.landingEvidenceStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--success);
+}
+
+.landingEvidenceStatus::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  content: "";
+}
+
+.landingEvidenceScore {
+  display: block;
+  margin: 30px 0 8px;
+  font-size: 56px;
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.landingEvidenceNote {
+  max-width: 300px;
   margin: 0;
-}
-
-.landingFeature h3 {
-  font-size: 17px;
-}
-
-.landingFeature p {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
 }
 
-.landingMetrics {
+.landingRubricList {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 28px 0 0;
+  padding: 0;
+  border-top: 1px solid #cbdff6;
+  list-style: none;
+}
+
+.landingRubric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #cbdff6;
+}
+
+.landingRubric span {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.landingRubric small {
+  color: var(--blue);
+  font-size: 12px;
+}
+
+.landingProofStrip {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
-.landingMetrics div {
+.landingProofItem {
   display: grid;
-  gap: 6px;
-  padding: 22px 20px;
+  gap: 10px;
+  min-height: 150px;
+  padding: 24px 20px;
   border-right: 1px solid var(--line);
+  transition: transform 180ms ease, background 180ms ease;
 }
 
-.landingMetrics div:last-child {
+.landingProofItem:hover {
+  background: var(--panel);
+  transform: translateY(-2px);
+}
+
+.landingProofItem:active {
+  opacity: 0.96;
+  transform: translateY(0);
+}
+
+.landingProofItem:last-child {
   border-right: 0;
 }
 
-.landingMetrics strong {
-  font-size: 28px;
-  font-weight: 700;
+.landingProofNumber,
+.landingStepNumber {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.landingMetrics span {
+.landingProofItem h2,
+.landingProofItem p {
+  margin: 0;
+}
+
+.landingProofItem h2 {
+  align-self: end;
+  font-size: 17px;
+}
+
+.landingProofItem p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.landingJourney {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  margin-top: 20px;
+}
+
+.landingJourneyIntro {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.landingJourneyIntro h2,
+.landingJourneyIntro p {
+  margin: 0;
+}
+
+.landingJourneyIntro h2 {
+  max-width: 430px;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.landingJourneyIntro > p:last-child {
+  max-width: 430px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.landingJourneyList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.landingJourneyStep {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.landingJourneyStep h3,
+.landingJourneyStep p {
+  margin: 0;
+}
+
+.landingJourneyStep h3 {
+  font-size: 16px;
+}
+
+.landingJourneyStep p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .authMain {
@@ -1866,6 +2019,101 @@ h1 span {
   font-size: 14px;
 }
 
+.caseRubricItem {
+  display: grid;
+  gap: 5px;
+  min-height: 108px;
+  align-content: center;
+  padding: 14px;
+  border: 1px solid #e3e3e8;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.caseRubricItem b,
+.caseReviewHeading > span {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.caseRubricItem strong {
+  padding: 0;
+  font-size: 15px;
+}
+
+.caseRubricItem span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.caseSessionHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.caseSessionHeader h1,
+.caseSessionHeader .lead {
+  max-width: 720px;
+}
+
+.caseSessionHeader .lead {
+  margin-bottom: 0;
+}
+
+.caseSessionHeader .timerBox {
+  margin-bottom: 0;
+}
+
+.caseReviewList {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.caseReviewItem {
+  padding: 18px;
+  border: 1px solid #e3e3e8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.caseReviewHeading {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.caseReviewHeading div {
+  display: grid;
+  gap: 4px;
+}
+
+.caseReviewHeading strong {
+  font-size: 15px;
+}
+
+.caseReviewHeading small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.caseReviewItem > p {
+  margin: 14px 0 0 46px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .timerBox {
   position: sticky;
   top: 74px;
@@ -2062,6 +2310,20 @@ h1 span {
   font-size: 12px;
   font-weight: 750;
   white-space: nowrap;
+}
+
+.criteriaItem > div > strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.criteriaItem > div > strong small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .criterionStatus.pass {
@@ -2702,6 +2964,11 @@ h1 span {
     padding-bottom: 132px;
   }
 
+  .caseSessionHeader {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
   .caseGrid {
     grid-template-columns: 1fr;
   }
@@ -2765,18 +3032,52 @@ h1 span {
     padding-top: 48px;
   }
 
-  .landingFeatureGrid {
+  .landingHeroGrid,
+  .landingJourney {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .landingHeroCopy {
+    padding-bottom: 0;
+  }
+
+  .landingEvidence {
+    min-height: 0;
+  }
+
+  .landingProofStrip {
     grid-template-columns: 1fr;
   }
 
-  .landingFeature {
+  .landingProofItem {
     min-height: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
-  .landingFeature:last-child {
+  .landingProofItem:last-child {
     border-bottom: 0;
+  }
+
+  .landingProofItem h2 {
+    align-self: initial;
+  }
+
+  .landingJourney {
+    margin-top: 0;
+  }
+
+  .landingJourneyIntro h2 {
+    max-width: 560px;
+  }
+
+  .landingJourneyIntro > p:last-child {
+    max-width: 560px;
+  }
+
+  .landingJourneyStep {
+    border-right: 0;
   }
 
   .screenGrid,
@@ -2876,25 +3177,34 @@ h1 span {
     display: grid;
   }
 
-  .landingHero h1 {
+  .caseReviewHeading {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .caseReviewItem > p {
+    margin-left: 36px;
+  }
+
+  .landingHeroCopy h1 {
     font-size: 34px;
   }
 
-  .landingHero .lead {
+  .landingHeroCopy .lead {
     font-size: 16px;
   }
 
-  .landingMetrics {
-    grid-template-columns: 1fr;
+  .landingEvidence {
+    padding: 22px 18px;
   }
 
-  .landingMetrics div {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
+  .landingActions {
+    display: grid;
   }
 
-  .landingMetrics div:last-child {
-    border-bottom: 0;
+  .landingActions .primaryButton,
+  .landingActions .secondaryButton {
+    width: 100%;
   }
 
   .authPanel {
@@ -3078,5 +3388,10 @@ h1 span {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .landingEvidence:hover,
+  .landingProofItem:hover {
+    transform: none;
   }
 }
